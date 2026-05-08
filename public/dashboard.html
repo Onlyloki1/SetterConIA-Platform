@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setter con IA — Classroom</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #07111f;
+  --bg2: rgba(74,184,254,0.03);
+  --bg3: rgba(74,184,254,0.06);
+  --bg4: rgba(74,184,254,0.08);
+  --border: rgba(74,184,254,0.12);
+  --text: #ffffff;
+  --text2: #a8c8e8;
+  --text3: #7a93aa;
+  --accent: #4ab8fe;
+  --accent-light: #a8d8ff;
+  --green: #25d366;
+  --font: 'Poppins', system-ui, sans-serif;
+  --font-head: 'Poppins', sans-serif;
+}
+html, body { min-height:100vh; background:var(--bg); color:var(--text2); font-family:var(--font); -webkit-font-smoothing:antialiased; }
+body { visibility:hidden; }
+body.ready { visibility:visible; }
+body {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(20,80,160,0.35), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(74,184,254,0.08), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(74,184,254,0.05), transparent 50%);
+  background-attachment:fixed;
+}
+h1,h2,h3,h4,.cc-title,.course-cover-title,.sw-item-title,.resources-title { font-family:var(--font-head); color:var(--text); }
+::selection { background:rgba(74,184,254,0.4); color:white; }
+::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:3px; }
+
+/* ── TOP NAV ── */
+.topnav {
+  height:60px; background:rgba(7,17,31,0.85); backdrop-filter:blur(20px); border-bottom:1px solid rgba(74,184,254,0.08);
+  display:flex; align-items:center; padding:0 36px; position:sticky; top:0; z-index:100;
+}
+.topnav-logo { display:flex; align-items:center; gap:10px; }
+.topnav-logo img { width:28px; height:28px; border-radius:6px; }
+.topnav-logo span { font-size:15px; font-weight:600; font-family:var(--font-head); letter-spacing:-0.3px; }
+.topnav-tabs { display:flex; gap:8px; margin-left:40px; }
+.topnav-tab {
+  padding:10px 18px; display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:600; color:rgba(255,255,255,0.35); cursor:pointer;
+  border-radius:10px; border:1px solid transparent; transition:all 0.25s;
+  font-family:var(--font-head); letter-spacing:0.3px; white-space:nowrap;
+}
+.topnav-tab:hover { color:white; background:rgba(255,255,255,0.05); }
+.topnav-tab.active { color:white; background:rgba(74,184,254,0.12); border-color:rgba(74,184,254,0.3); }
+.topnav-right { margin-left:auto; display:flex; align-items:center; gap:16px; }
+.topnav-user { font-size:13px; color:var(--text2); }
+.topnav-avatar {
+  width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg,#4ab8fe,#2196f3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; color:#fff; cursor:pointer;
+}
+.btn-logout {
+  background:none; border:1px solid rgba(255,255,255,0.06); border-radius:8px;
+  padding:6px 12px; color:var(--text2); font-size:12px; cursor:pointer;
+  font-family:var(--font); transition:all 0.2s;
+}
+.btn-logout:hover { border-color:var(--text2); color:var(--text); }
+
+/* ── CLASSROOM VIEW (modules grid) ── */
+.classroom { max-width:1200px; margin:0 auto; padding:32px 24px; }
+.classroom-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:20px;
+}
+.course-card {
+  background:rgba(255,255,255,0.02); border-radius:18px; overflow:hidden;
+  border:1px solid rgba(255,255,255,0.06); cursor:pointer;
+  transition:transform 0.4s cubic-bezier(.16,1,.3,1), border-color 0.4s, box-shadow 0.4s;
+  position:relative;
+}
+.course-card::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.course-card:hover { border-color:rgba(74,184,254,0.2); transform:translateY(-3px); box-shadow:0 16px 48px -16px rgba(74,184,254,0.15); }
+.course-cover {
+  width:100%; height:180px; background-size:cover; background-position:center;
+  background-color:var(--bg3); position:relative;
+}
+.course-cover-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 50%);
+  display:flex; flex-direction:column; justify-content:flex-end; padding:16px;
+}
+.course-cover-badge {
+  position:absolute; top:10px; left:10px;
+  padding:4px 10px; border-radius:6px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(4px);
+  font-size:10px; font-weight:700; letter-spacing:1.8px;
+  text-transform:uppercase; color:#fff;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.course-cover-title {
+  font-size:20px; font-weight:800; text-transform:uppercase;
+  letter-spacing:0.02em; text-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+.course-body { padding:14px 16px 16px; }
+.course-name { font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:4px; }
+.course-desc {
+  font-size:13px; color:var(--text2); line-height:1.4; margin-bottom:12px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.course-progress-wrap { display:flex; align-items:center; gap:8px; }
+.course-progress-bar {
+  flex:1; height:4px; background:var(--bg4); border-radius:2px; overflow:hidden;
+}
+.course-progress-fill { height:100%; background:linear-gradient(90deg,#4ab8fe,#a8d8ff); border-radius:2px; transition:width 0.5s; }
+.course-progress-text { font-size:12px; color:var(--text3); font-weight:600; }
+
+/* ── COURSE VIEW (sidebar + content) ── */
+.course-view { display:flex; height:calc(100vh - 60px); }
+
+/* Left sidebar */
+.course-sidebar {
+  width:320px; flex-shrink:0; background:rgba(12,29,48,0.8);
+  border-right:1px solid rgba(74,184,254,0.08); display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.cs-header {
+  padding:20px 20px 16px; border-bottom:1px solid var(--border);
+}
+.cs-title { font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; margin-bottom:8px; }
+.cs-progress { display:flex; align-items:center; gap:8px; }
+.cs-progress-bar { flex:1; height:4px; background:var(--bg4); border-radius:2px; overflow:hidden; }
+.cs-progress-fill { height:100%; background:linear-gradient(90deg,#4ab8fe,#25d366); border-radius:2px; }
+.cs-progress-text { font-size:12px; color:var(--text3); font-weight:600; }
+.cs-back {
+  display:flex; align-items:center; gap:6px; padding:10px 20px;
+  font-size:13px; color:var(--text2); cursor:pointer; border-bottom:1px solid var(--border);
+  background:none; border-left:none; border-right:none; border-top:none;
+  width:100%; text-align:left; font-family:var(--font); transition:background 0.15s;
+}
+.cs-back:hover { background:var(--bg3); color:var(--text); }
+
+/* Lesson list */
+.cs-lessons { flex:1; overflow-y:auto; padding:4px 0; }
+.cs-section {
+  padding:16px 20px 6px; font-size:11px; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--text3);
+}
+.cs-lesson {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 20px; cursor:pointer; transition:all 0.15s;
+  border-left:3px solid transparent;
+}
+.cs-lesson:hover { background:var(--bg3); }
+.cs-lesson.active { background:rgba(74,184,254,0.08); border-left-color:#4ab8fe; }
+.cs-lesson.done .cs-lesson-title { color:var(--text3); }
+.cs-check {
+  width:20px; height:20px; border-radius:50%;
+  border:2px solid var(--border); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.cs-check.done { background:var(--green); border-color:var(--green); }
+.cs-lesson-info { flex:1; min-width:0; }
+.cs-lesson-title {
+  font-size:13px; font-weight:500; line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cs-lesson-meta { font-size:11px; color:var(--text3); margin-top:1px; }
+
+/* Right content */
+.course-content {
+  flex:1; overflow-y:auto; background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 50% 40% at 90% 0%, rgba(74,184,254,0.06), transparent 50%),
+    radial-gradient(ellipse 40% 50% at 95% 90%, rgba(74,184,254,0.04), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 5% 95%, rgba(20,80,160,0.06), transparent 50%);
+}
+.cc-inner { max-width:900px; margin:0 auto; padding:32px; }
+.cc-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+.cc-desc { font-size:14px; color:var(--text2); line-height:1.6; margin-bottom:20px; }
+.cc-video {
+  width:100%; aspect-ratio:16/9; border-radius:20px;
+  overflow:hidden; background:#000; position:relative;
+  margin-bottom:20px; border:1px solid rgba(74,184,254,0.15);
+  box-shadow:0 32px 80px rgba(0,0,0,0.7), 0 0 30px rgba(74,184,254,0.08);
+}
+.cc-video iframe { width:100%; height:100%; border:none; }
+.cc-video-overlay { position:absolute; top:0; left:0; right:0; height:50px; z-index:5; }
+.cc-video-shield { position:absolute; bottom:0; right:0; width:180px; height:45px; z-index:5; }
+.cc-pdf { width:100%; height:700px; border-radius:10px; overflow:hidden; margin-bottom:20px; }
+.cc-pdf iframe { width:100%; height:100%; border:none; background:#fff; }
+.cc-actions { display:flex; gap:10px; margin-top:16px; }
+.cc-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600;
+  cursor:pointer; font-family:var(--font); transition:all 0.2s; border:none;
+}
+.cc-btn-primary { background:linear-gradient(135deg,#4ab8fe,#2196f3); color:#fff; border:none; }
+.cc-btn-primary:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 8px 24px rgba(74,184,254,0.3); }
+.cc-btn-done { background:linear-gradient(135deg,#1a9e4a,#25d366); color:#fff; border:none; }
+.cc-btn-ghost { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); }
+.cc-btn-ghost:hover { border-color:rgba(255,255,255,0.12); color:white; background:rgba(255,255,255,0.05); }
+.cc-empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:60vh; color:var(--text3); gap:12px; font-size:14px;
+}
+.cc-completed-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600;
+  background:rgba(52,211,153,0.1); color:var(--green); margin-bottom:12px;
+}
+.cc-link-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+  padding:40px; text-align:center; margin-bottom:20px;
+}
+.cc-desc-block {
+  font-size:14px; color:var(--text2); line-height:1.7; margin:16px 0 20px;
+  white-space:pre-wrap; word-break:break-word;
+}
+.cc-desc-block a {
+  color:var(--accent); text-decoration:none; word-break:break-all;
+}
+.cc-desc-block a:hover { text-decoration:underline; }
+
+/* ── RESOURCES VIEW ── */
+.resources { max-width:1200px; margin:0 auto; padding:32px 24px; }
+.resources-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+.resources-sub { font-size:14px; color:var(--text2); margin-bottom:24px; }
+.resources-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+.res-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+  padding:16px 20px; display:flex; align-items:center; gap:14px;
+  cursor:pointer; transition:all 0.2s; text-decoration:none; color:inherit;
+}
+.res-card:hover { border-color:#555; background:var(--bg3); }
+.res-icon {
+  width:40px; height:40px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.res-icon.pdf { background:rgba(239,68,68,0.1); color:#ef4444; }
+.res-icon.link { background:rgba(74,158,255,0.1); color:var(--accent); }
+.res-title { font-size:14px; font-weight:600; }
+.res-desc { font-size:12px; color:var(--text3); margin-top:2px; }
+
+/* ── ADMIN INLINE ── */
+.admin-only { display:none; }
+body.is-admin .admin-only { display:flex; }
+
+/* New course card */
+.new-course-card {
+  background:rgba(255,255,255,0.01); border:2px dashed rgba(255,255,255,0.06); border-radius:18px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  min-height:280px; cursor:pointer; color:rgba(255,255,255,0.2); font-size:14px; font-weight:600;
+  transition:all 0.3s;
+}
+.new-course-card:hover { border-color:rgba(74,184,254,0.4); color:#4ab8fe; background:rgba(74,184,254,0.03); }
+
+/* Card admin actions */
+.card-actions {
+  position:absolute; top:10px; right:10px; display:none; gap:4px; z-index:5;
+}
+.course-card:hover .card-actions { display:flex; }
+.card-action-btn {
+  width:30px; height:30px; border-radius:6px; border:none; cursor:pointer;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); color:#fff;
+  display:flex; align-items:center; justify-content:center; transition:all 0.15s;
+}
+.card-action-btn:hover { background:rgba(0,0,0,0.8); }
+.card-action-btn.del:hover { background:#e74c3c; }
+
+/* Sidebar admin buttons */
+.cs-admin-bar {
+  display:none; padding:8px 12px; gap:6px;
+  border-bottom:1px solid var(--border);
+}
+body.is-admin .cs-admin-bar { display:flex; }
+.cs-admin-btn {
+  flex:1; padding:7px 10px; border-radius:6px; border:1px solid var(--border);
+  background:var(--bg3); color:var(--text2); font-size:11px; font-weight:600;
+  cursor:pointer; font-family:var(--font); transition:all 0.15s;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+}
+.cs-admin-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Lesson admin actions */
+.cs-lesson-actions {
+  display:none; gap:2px; flex-shrink:0;
+}
+body.is-admin .cs-lesson:hover .cs-lesson-actions { display:flex; }
+.cs-lesson-action {
+  width:24px; height:24px; border-radius:4px; border:none; cursor:pointer;
+  background:transparent; color:var(--text3); display:flex; align-items:center;
+  justify-content:center; transition:all 0.15s;
+}
+.cs-lesson-action:hover { background:var(--bg4); color:var(--text); }
+.cs-lesson-action.del:hover { color:#e74c3c; }
+
+/* Dragging */
+.dragging { opacity:0.4; }
+.drag-over { border-top:2px solid var(--accent); }
+.course-card { position:relative; }
+body.is-admin .course-card[draggable="true"] { cursor:grab; }
+body.is-admin .cs-lesson[draggable="true"] { cursor:grab; }
+
+/* Modal */
+.modal-bg {
+  position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.25s;
+}
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal-box {
+  width:520px; max-width:95vw; max-height:85vh; overflow-y:auto;
+  background:linear-gradient(140deg,#0c1d30,#091624); border:1px solid rgba(74,184,254,0.15); border-radius:20px;
+  padding:32px; animation:modalIn 0.3s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 32px 80px rgba(0,0,0,0.7), 0 0 40px rgba(74,184,254,0.05);
+}
+@keyframes modalIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-title { font-size:20px; font-weight:700; margin-bottom:24px; font-family:var(--font-head); letter-spacing:-0.3px; }
+.modal-field { margin-bottom:14px; }
+.modal-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.3); margin-bottom:6px; }
+.modal-input, .modal-select, .modal-textarea {
+  width:100%; padding:11px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px; color:var(--text); font-size:14px; font-family:var(--font);
+  outline:none; transition:border-color 0.25s;
+}
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color:rgba(74,184,254,0.5); box-shadow:0 0 0 3px rgba(74,184,254,0.1); }
+.modal-textarea { min-height:80px; resize:vertical; }
+.modal-select, select.modal-input { appearance:auto; background:rgba(255,255,255,0.03); color:var(--text); }
+select.modal-input option, .modal-select option { background:#0c1d30; color:#fff; }
+input[type="date"].modal-input { color-scheme:dark; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1); opacity:0.5; cursor:pointer; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.modal-btn {
+  padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600;
+  cursor:pointer; font-family:var(--font); border:none; transition:all 0.15s;
+}
+.modal-btn-cancel { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.06); }
+.modal-btn-cancel:hover { background:rgba(255,255,255,0.08); color:white; }
+.modal-btn-save { background:linear-gradient(135deg,#4ab8fe,#2196f3); color:#fff; }
+.modal-btn-save:hover { opacity:0.9; }
+.modal-btn-danger { background:#e74c3c; color:#fff; }
+
+/* Bulk import */
+.bulk-preview { margin-top:14px; max-height:200px; overflow-y:auto; }
+.bulk-row {
+  display:flex; align-items:center; gap:10px; padding:8px 12px;
+  background:var(--bg); border-radius:6px; margin-bottom:4px; font-size:13px;
+}
+.bulk-row-type { font-size:10px; font-weight:700; text-transform:uppercase; padding:2px 6px; border-radius:3px; }
+.bulk-row-type.video { background:rgba(74,158,255,0.15); color:var(--accent); }
+.bulk-row-type.pdf { background:rgba(239,68,68,0.15); color:#ef4444; }
+.bulk-row-type.link { background:rgba(52,211,153,0.15); color:var(--green); }
+.bulk-progress { margin-top:12px; }
+.bulk-progress-bar { height:6px; background:var(--bg4); border-radius:3px; overflow:hidden; }
+.bulk-progress-fill { height:100%; background:var(--accent); transition:width 0.3s; border-radius:3px; }
+.bulk-status { font-size:12px; color:var(--text2); margin-top:6px; }
+
+/* ── SOFTWARE ITEMS (vertical list in Resources) ── */
+.sw-item {
+  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:18px;
+  padding:28px 30px; margin-bottom:20px; position:relative; overflow:hidden;
+  transition:border-color 0.4s, box-shadow 0.4s;
+}
+.sw-item::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.sw-item:hover { border-color:rgba(255,255,255,0.1); }
+.sw-item-header { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+.sw-item-icon { font-size:32px; }
+.sw-item-title { font-size:20px; font-weight:700; }
+.sw-item-desc { font-size:14px; color:var(--text2); margin-top:2px; }
+.sw-item-video { width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:#000; margin-bottom:20px; }
+.sw-item-video iframe { width:100%; height:100%; border:none; }
+.sw-item-actions-row { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.sw-item-admin { position:absolute; top:16px; right:16px; display:none; gap:4px; align-items:center; }
+.sw-item:hover .sw-item-admin { display:flex; }
+.sw-item.drag-over-top { border-top:3px solid var(--accent); }
+.sw-item.drag-over-bottom { border-bottom:3px solid var(--accent); }
+.sw-item.dragging-sw { opacity:0.3; }
+body.is-admin .sw-item[draggable="true"] { cursor:default; }
+body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
+.sw-item-section { margin-bottom:16px; }
+.sw-item-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); margin-bottom:6px; }
+.sw-cred-box {
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:6px;
+}
+.sw-cred-label { font-size:12px; color:var(--text3); }
+.sw-cred-value { font-size:14px; font-weight:600; font-family:monospace; }
+.sw-copy-btn {
+  background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+  padding:5px 10px; color:var(--text2); font-size:11px; cursor:pointer;
+  font-family:var(--font); transition:all 0.15s;
+}
+.sw-copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+.sw-no-creds { color:var(--text3); font-size:13px; font-style:italic; }
+.sw-copy-hint { font-size:11px; color:var(--text3); white-space:nowrap; }
+.sw-cred-box:hover { border-color:var(--accent); background:rgba(74,158,255,0.03); }
+.sw-cred-box:hover .sw-copy-hint { color:var(--accent); }
+
+/* Copy toast */
+.copy-toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--green); color:#fff; padding:10px 24px; border-radius:10px;
+  font-size:13px; font-weight:600; font-family:var(--font);
+  box-shadow:0 4px 16px rgba(52,211,153,0.3);
+  opacity:0; transition:all 0.3s ease; pointer-events:none; z-index:9999;
+}
+.copy-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width:768px) {
+  .topnav-tabs { display:none; }
+  .classroom-grid { grid-template-columns:1fr; }
+  .course-view { flex-direction:column; height:auto; }
+  .course-sidebar { width:100%; max-height:45vh; }
+  .cc-inner { padding:20px 16px; }
+  .mobile-tabs {
+    display:flex; position:fixed; bottom:0; left:0; right:0;
+    background:var(--bg2); border-top:1px solid var(--border);
+    justify-content:space-around; padding:8px 0; z-index:100;
+  }
+  .mobile-tabs button {
+    background:none; border:none; color:var(--text3); font-family:var(--font);
+    font-size:10px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
+  }
+  .mobile-tabs button.active { color:var(--accent); }
+  .mobile-tabs svg { width:20px; height:20px; }
+  body { padding-bottom:70px; }
+}
+@media (min-width:769px) { .mobile-tabs { display:none; } }
+@keyframes pulseUpgrade {
+  0%,100% { box-shadow:0 0 0 0 rgba(245,158,11,0.4); }
+  50% { box-shadow:0 0 20px 4px rgba(245,158,11,0.3); }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="topnav-logo">
+    <img src="https://assets.cdn.filesafe.space/viKKPXD4WZGBeMjzT0tt/media/69b2ba63eba487f12ae6fc60.svg" alt="">
+    <span>Setter con IA</span>
+  </div>
+  <div class="topnav-tabs">
+    <div class="topnav-tab active" data-view="classroom" onclick="showMainView('classroom')">Classroom</div>
+    <div class="topnav-tab" data-view="resources" onclick="showMainView('resources')">Recursos</div>
+    <div class="topnav-tab" data-view="checkin" onclick="showMainView('checkin')">Check-in</div>
+    <div class="topnav-tab" data-view="diario" onclick="showMainView('diario')">Diario</div>
+    <div class="topnav-tab" id="tabDiscord" data-view="discord" onclick="showMainView('discord')" style="background:rgba(37,211,102,0.15);border-color:rgba(37,211,102,0.3);color:#25d366;white-space:nowrap;display:none;">🎓 Clases en vivo</div>
+  </div>
+  <div class="topnav-right">
+    <span class="topnav-user" id="userName"></span>
+    <a href="/admin.html" class="btn-logout admin-only" style="text-decoration:none;background:var(--accent);color:#fff;border-color:var(--accent);">Admin</a>
+    <div class="topnav-avatar" id="userAvatar"></div>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </div>
+</div>
+
+<!-- CLASSROOM (modules grid) -->
+<div id="view-classroom" class="classroom">
+  <div class="classroom-grid" id="modulesGrid"></div>
+</div>
+
+<!-- COURSE (sidebar + content) -->
+<div id="view-course" style="display:none;">
+  <div class="course-view">
+    <div class="course-sidebar">
+      <button class="cs-back" onclick="showMainView('classroom')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+      <div class="cs-header">
+        <div class="cs-title" id="csTitle"></div>
+        <div class="cs-progress">
+          <div class="cs-progress-bar"><div class="cs-progress-fill" id="csProgress"></div></div>
+          <span class="cs-progress-text" id="csProgressText">0%</span>
+        </div>
+      </div>
+      <div class="cs-admin-bar">
+        <button class="cs-admin-btn" onclick="openLessonModal()">+ Lección</button>
+        <button class="cs-admin-btn" onclick="openBulkModal()">📋 Import masivo</button>
+      </div>
+      <div class="cs-lessons" id="csLessons"></div>
+    </div>
+    <div class="course-content">
+      <div class="cc-inner" id="ccContent">
+        <div class="cc-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <p>Seleccioná una lección</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESOURCES (softwares + materials) -->
+<div id="view-resources" style="display:none;" class="resources">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div class="resources-title">Recursos</div>
+    <button class="cc-btn cc-btn-ghost admin-only" onclick="openSoftwareModal()" style="font-size:12px;">+ Nuevo Software</button>
+  </div>
+  <div class="resources-sub">Tus herramientas, software y credenciales</div>
+  <!-- Software list (vertical) -->
+  <div id="softwareList"></div>
+  <!-- Other resources -->
+  <div id="resourcesOther" style="margin-top:32px;"></div>
+</div>
+
+<!-- ONBOARDING (fullscreen wizard) -->
+<div id="view-onboarding" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;">
+  <div style="min-height:100vh;display:flex;flex-direction:column;">
+    <!-- Progress bar -->
+    <div style="position:sticky;top:0;z-index:10;background:rgba(7,17,31,0.95);backdrop-filter:blur(12px);padding:16px 36px;border-bottom:1px solid rgba(74,184,254,0.08);">
+      <div style="display:flex;align-items:center;gap:16px;max-width:720px;margin:0 auto;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4ab8fe,#2196f3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;">SA</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:4px;" id="onbStepLabel">Paso 1 de 5</div>
+          <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div id="onbProgressBar" style="height:100%;background:linear-gradient(90deg,#4ab8fe,#a8d8ff);border-radius:2px;transition:width 0.5s;width:20%;"></div></div>
+        </div>
+        <button onclick="document.cookie='token=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';window.location='/login.html'" style="background:none;border:1px solid rgba(255,255,255,0.15);color:var(--text3);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Salir</button>
+      </div>
+    </div>
+    <!-- Content -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+      <div style="width:100%;max-width:720px;" id="onbContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING APPROVAL -->
+<div id="view-pending" style="display:none;" class="resources">
+  <div style="position:fixed;top:16px;right:24px;z-index:10;">
+    <button class="cc-btn cc-btn-ghost" onclick="logout()" style="padding:8px 18px;font-size:12px;">Cerrar sesión</button>
+  </div>
+  <div style="max-width:500px;margin:0 auto;padding:80px 24px;text-align:center;">
+    <div style="font-size:64px;margin-bottom:20px;">⏳</div>
+    <h2 style="font-family:var(--font-head);font-size:24px;color:#fff;margin-bottom:12px;">Tu cuenta está en revisión</h2>
+    <p style="color:var(--text3);font-size:14px;line-height:1.7;margin-bottom:24px;">Completaste el onboarding correctamente. Estamos revisando tus datos y comprobantes de pago. Te notificaremos cuando tu cuenta esté aprobada.</p>
+    <p style="color:var(--text3);font-size:12px;">Si tenés dudas, contactanos por WhatsApp.</p>
+  </div>
+</div>
+
+<!-- REJECTED -->
+<div id="view-rejected" style="display:none;" class="resources">
+  <div style="position:fixed;top:16px;right:24px;z-index:10;">
+    <button class="cc-btn cc-btn-ghost" onclick="logout()" style="padding:8px 18px;font-size:12px;">Cerrar sesión</button>
+  </div>
+  <div style="max-width:500px;margin:0 auto;padding:80px 24px;text-align:center;">
+    <div style="font-size:64px;margin-bottom:20px;">❌</div>
+    <h2 style="font-family:var(--font-head);font-size:24px;color:#fff;margin-bottom:12px;">Tu solicitud fue rechazada</h2>
+    <p style="color:var(--text3);font-size:14px;line-height:1.7;">Contactá al administrador para más información.</p>
+  </div>
+</div>
+
+<!-- CHECK-IN + METAS -->
+<div id="view-checkin" style="display:none;" class="resources">
+  <div style="max-width:800px;margin:0 auto;">
+    <!-- Metas del mes -->
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="font-family:var(--font-head);font-size:20px;font-weight:700;color:#fff;">Meta del Mes</h2>
+        <button class="cc-btn cc-btn-ghost" onclick="openGoalModal()" style="font-size:12px;">Editar Meta</button>
+      </div>
+      <div id="goalProgress" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;"></div>
+    </div>
+    <!-- Check-in form -->
+    <div style="margin-bottom:32px;">
+      <h2 style="font-family:var(--font-head);font-size:20px;font-weight:700;color:#fff;margin-bottom:16px;">Check-in Semanal</h2>
+      <div id="checkinForm"></div>
+    </div>
+    <!-- Historial -->
+    <div>
+      <h3 style="font-family:var(--font-head);font-size:16px;font-weight:600;color:#fff;margin-bottom:12px;">Historial</h3>
+      <div id="checkinHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DIARIO -->
+<div id="view-diario" style="display:none;" class="resources">
+  <div style="max-width:700px;margin:0 auto;">
+    <h2 style="font-family:var(--font-head);font-size:20px;font-weight:700;color:#fff;margin-bottom:16px;">Diario de Acción</h2>
+    <div style="background:rgba(74,184,254,0.03);border:1px solid rgba(74,184,254,0.12);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <textarea id="diarioInput" class="modal-textarea" placeholder="¿Qué hiciste hoy? Anotá tus acciones..." style="min-height:80px;margin-bottom:12px;"></textarea>
+      <button class="cc-btn cc-btn-primary" onclick="submitAction()" style="width:100%;">Agregar al Diario</button>
+    </div>
+    <div id="diarioTimeline"></div>
+  </div>
+</div>
+
+<!-- DISCORD / CLASES EN VIVO -->
+<div id="view-discord" style="display:none;" class="resources">
+  <div style="max-width:800px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:48px;margin-bottom:12px;">🎓</div>
+      <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Clases en Vivo</h2>
+      <p style="color:var(--text3);font-size:14px;">Mira este video completo para acceder al servidor de Discord</p>
+    </div>
+    <div style="position:relative;aspect-ratio:16/9;border-radius:20px;overflow:hidden;border:1px solid rgba(37,211,102,0.2);box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 30px rgba(37,211,102,0.08);margin-bottom:24px;">
+      <iframe id="discordVideo" src="https://www.loom.com/embed/cc8bcd796b884f34a9df5ff7381b92a1" style="width:100%;height:100%;border:none;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe>
+    </div>
+    <div id="discordLocked" style="text-align:center;">
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:24px;margin-bottom:16px;">
+        <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+        <p style="color:var(--text3);font-size:14px;margin-bottom:12px;">Mira el video completo para desbloquear el acceso</p>
+        <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;max-width:300px;margin:0 auto;">
+          <div id="discordProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#25d366,#6ee7b7);border-radius:3px;transition:width 1s;"></div>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:6px;" id="discordTimer">0%</p>
+      </div>
+    </div>
+    <div id="discordUnlocked" style="display:none;text-align:center;">
+      <div style="background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;padding:32px;">
+        <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+        <h3 style="font-family:var(--font-head);font-size:20px;color:#fff;margin-bottom:12px;">Video completado!</h3>
+        <p style="color:var(--text3);font-size:14px;margin-bottom:20px;">Ya podes acceder al servidor de Discord con las clases en vivo.</p>
+        <button onclick="openDiscordLink()" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#5865F2,#7289da);color:#fff;font-size:16px;font-weight:700;padding:16px 40px;border-radius:14px;text-decoration:none;border:none;box-shadow:0 8px 30px rgba(88,101,242,0.4);cursor:pointer;font-family:var(--font);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Acceder a Discord
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE TABS -->
+<div class="mobile-tabs">
+  <button class="active" onclick="showMainView('classroom')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Classroom
+  </button>
+  <button onclick="showMainView('resources')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Resources
+  </button>
+</div>
+
+<!-- COPY TOAST -->
+<div class="copy-toast" id="copyToast"></div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script>
+let user = null, modules = [], lessons = [], activeLesson = null, currentModuleId = null;
+let isAdmin = false;
+
+// ── INIT ──
+async function init() {
+  try {
+    const r = await fetch('/api/auth/me');
+    if (!r.ok) throw new Error();
+    user = await r.json();
+    isAdmin = user.role === 'admin';
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+    if (isAdmin) document.body.classList.add('is-admin');
+    if (user.has_discord || isAdmin) document.getElementById('tabDiscord').style.display = '';
+    // Reserve: hide all tabs except Classroom, show upgrade button
+    if (!isAdmin && user.access_type === 'reserve') {
+      document.querySelectorAll('.topnav-tab').forEach(t => {
+        if (t.dataset.view !== 'classroom') t.style.display = 'none';
+      });
+      const tabs = document.querySelector('.topnav-tabs');
+      tabs.insertAdjacentHTML('beforeend', `
+        <a href="https://wa.link/jvao5e" target="_blank" rel="noopener" style="
+          display:flex;align-items:center;gap:8px;padding:10px 24px;
+          background:linear-gradient(135deg,#f59e0b,#d97706);
+          color:#fff;font-size:13px;font-weight:700;border-radius:10px;
+          text-decoration:none;white-space:nowrap;
+          animation:pulseUpgrade 2s ease-in-out infinite;
+        ">🚀 Completar pago del programa</a>
+      `);
+    }
+    // Check flow: onboarding → approval → classroom
+    if (!isAdmin && user.rejected) {
+      document.querySelector('.topnav').style.display = 'none';
+      document.body.classList.add('ready');
+      showMainView('rejected');
+    } else if (!isAdmin && !user.onboarding_completed) {
+      document.querySelector('.topnav').style.display = 'none';
+      document.body.classList.add('ready');
+      showMainView('onboarding');
+    } else if (!isAdmin && !user.approved) {
+      document.querySelector('.topnav').style.display = 'none';
+      document.body.classList.add('ready');
+      showMainView('pending');
+    } else {
+      document.body.classList.add('ready');
+      loadClassroom();
+    }
+  } catch { location.href = '/login.html'; }
+}
+
+async function logout() { await fetch('/api/auth/logout',{method:'POST'}); location.href='/login.html'; }
+
+// ── VIEWS ──
+function showMainView(v) {
+  ['classroom','course','resources','onboarding','checkin','diario','discord','pending','rejected'].forEach(id => {
+    const el = document.getElementById('view-'+id);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('view-'+v).style.display = '';
+  document.querySelectorAll('.topnav-tab').forEach(t => t.classList.toggle('active', t.dataset.view===v));
+  if (v==='classroom') loadClassroom();
+  if (v==='resources') loadResources();
+  if (v==='onboarding') loadOnboarding();
+  if (v==='checkin') { loadCheckin(); loadGoals(); }
+  if (v==='diario') loadDiario();
+  if (v==='discord') startDiscordTimer();
+}
+
+// ── CLASSROOM ──
+async function loadClassroom() {
+  modules = await fetch('/api/client/modules').then(r=>r.json());
+  const g = document.getElementById('modulesGrid');
+  const planMods = user.plan_modules || [];
+  const hasRestrictions = !isAdmin && planMods.length > 0;
+
+  g.innerHTML = modules.map((m,i) => {
+    const total = +m.total_lessons||0, done = +m.completed_lessons||0;
+    const pct = total?Math.round(done/total*100):0;
+    const cover = m.cover_image ? `background-image:url('${esc(m.cover_image)}')` : `background:linear-gradient(135deg,#1a1a2e,#16213e)`;
+    const drag = isAdmin ? 'draggable="true" ondragstart="dragModule(event,'+m.id+')" ondragover="event.preventDefault()" ondrop="dropModule(event,'+m.id+')"' : '';
+    const locked = hasRestrictions && !planMods.includes(m.id);
+
+    if (locked) {
+      return `<div class="course-card" style="cursor:not-allowed;position:relative;overflow:hidden;" onclick="alert('Este modulo no esta incluido en tu plan actual. Contacta al administrador para hacer el upgrade.')">
+        <div class="course-cover" style="${cover};filter:blur(3px) brightness(0.4);">
+          <div class="course-cover-overlay">
+            <div class="course-cover-badge">${m.is_bonus?'🎁 BONUS':'Módulo '+String(i+1).padStart(2,'0')}</div>
+            <div class="course-cover-title">${esc(m.title)}</div>
+          </div>
+        </div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:5;">
+          <div style="font-size:40px;margin-bottom:8px;">🔒</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;">BLOQUEADO</div>
+        </div>
+        <div class="course-body" style="filter:blur(2px);opacity:0.4;">
+          <div class="course-name">${esc(m.title)}</div>
+          <div class="course-desc">${esc(m.description||'')}</div>
+        </div>
+      </div>`;
+    }
+
+    return `<div class="course-card" ${drag} data-mid="${m.id}" onclick="openCourse(${m.id})">
+      ${isAdmin?`<div class="card-actions admin-only">
+        <button class="card-action-btn" onclick="event.stopPropagation();openModuleModal(${m.id})" title="Editar">✏️</button>
+        <button class="card-action-btn del" onclick="event.stopPropagation();deleteModule(${m.id})" title="Eliminar">🗑</button>
+      </div>`:''}
+      <div class="course-cover" style="${cover}">
+        <div class="course-cover-overlay">
+          <div class="course-cover-badge" ${m.is_bonus?'style="background:linear-gradient(135deg,#f59e0b,#d97706);"':''}>${m.is_bonus?'🎁 BONUS':'Módulo '+String(i+1).padStart(2,'0')}</div>
+          <div class="course-cover-title">${esc(m.title)}</div>
+        </div>
+      </div>
+      <div class="course-body">
+        <div class="course-name">${esc(m.title)}</div>
+        <div class="course-desc">${esc(m.description||'')}</div>
+        <div class="course-progress-wrap">
+          <div class="course-progress-bar"><div class="course-progress-fill" style="width:${pct}%"></div></div>
+          <span class="course-progress-text">${pct}%</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  if (isAdmin) g.innerHTML += `<div class="new-course-card admin-only" onclick="openModuleModal()">+ New course</div>`;
+}
+
+// ── COURSE ──
+async function openCourse(id) {
+  currentModuleId = id;
+  activeLesson = null;
+  const mod = modules.find(m=>m.id===id);
+  document.getElementById('csTitle').textContent = mod.title.toUpperCase();
+  showMainView('course');
+
+  lessons = await fetch(`/api/client/modules/${id}/lessons`).then(r=>r.json());
+  updateSidebar();
+
+  // Auto-open first incomplete or first lesson
+  const first = lessons.find(l=>!l.completed) || lessons[0];
+  if (first) selectLesson(first.id);
+  else document.getElementById('ccContent').innerHTML = '<div class="cc-empty"><p>No hay lecciones en este módulo todavía</p></div>';
+}
+
+function updateSidebar() {
+  const total = lessons.length, done = lessons.filter(l=>l.completed).length;
+  const pct = total?Math.round(done/total*100):0;
+  document.getElementById('csProgress').style.width = pct+'%';
+  document.getElementById('csProgressText').textContent = pct+'%';
+
+  const drag = isAdmin ? 'draggable="true"' : '';
+  document.getElementById('csLessons').innerHTML = lessons.map(l => `
+    <div class="cs-lesson ${l.completed?'done':''} ${l.id===activeLesson?'active':''}"
+         onclick="selectLesson(${l.id})" id="sl-${l.id}" ${drag}
+         ${isAdmin?`ondragstart="dragLesson(event,${l.id})" ondragover="event.preventDefault()" ondrop="dropLesson(event,${l.id})"`:''}>
+      <div class="cs-check ${l.completed?'done':''}">
+        ${l.completed?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
+      </div>
+      <div class="cs-lesson-info">
+        <div class="cs-lesson-title">${esc(l.title)}</div>
+        <div class="cs-lesson-meta">${typeLabel(l.content_type)}${l.duration?' · '+esc(l.duration):''}</div>
+      </div>
+      ${isAdmin?`<div class="cs-lesson-actions">
+        <button class="cs-lesson-action" onclick="event.stopPropagation();openLessonModal(${l.id})" title="Editar">✏️</button>
+        <button class="cs-lesson-action del" onclick="event.stopPropagation();deleteLessonInline(${l.id})" title="Eliminar">🗑</button>
+      </div>`:''}
+    </div>
+  `).join('');
+}
+
+function selectLesson(id) {
+  activeLesson = id;
+  const l = lessons.find(x=>x.id===id);
+  if (!l) return;
+
+  // Update sidebar active
+  document.querySelectorAll('.cs-lesson').forEach(el=>el.classList.remove('active'));
+  const el = document.getElementById('sl-'+id);
+  if (el) el.classList.add('active');
+
+  // Build content — Skool style: title → video → description (with clickable links) → complete button
+  let html = '';
+
+  // Title (big, bold)
+  html += `<div class="cc-title">${esc(l.title)}</div>`;
+
+  // Admin edit button
+  if (isAdmin) {
+    html += `<div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="cc-btn cc-btn-ghost" onclick="openLessonModal(${l.id})" style="font-size:11px;padding:4px 10px;">✏️ Editar</button>
+    </div>`;
+  }
+
+  // Content (video/pdf/link)
+  if (l.content_type==='video') {
+    html += `<div class="cc-video" id="videoBox"><div class="cc-video-overlay"></div><iframe id="vFrame" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe><div class="cc-video-shield"></div></div>`;
+  } else if (l.content_type==='pdf') {
+    html += `<div class="cc-pdf"><iframe src="${esc(l.content_url)}#toolbar=1&navpanes=0"></iframe></div>`;
+  } else {
+    html += `<div class="cc-link-card"><p style="color:var(--text2);margin-bottom:14px;">Este contenido se abre en una nueva pestaña</p><a href="${esc(l.content_url)}" target="_blank" rel="noopener" class="cc-btn cc-btn-primary">Abrir Link ↗</a></div>`;
+  }
+
+  // Description below video — with auto-linked URLs
+  if (l.description) {
+    html += `<div class="cc-desc-block">${linkifyText(esc(l.description))}</div>`;
+  }
+
+  // Complete button
+  html += `<div class="cc-actions">
+    <button class="cc-btn ${l.completed?'cc-btn-done':'cc-btn-primary'}" onclick="toggleDone(${l.id})" style="padding:10px 24px;font-size:14px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      ${l.completed?'Completada':'Completar'}
+    </button>
+    ${l.content_type==='pdf'?`<a href="${esc(l.content_url)}" download class="cc-btn cc-btn-ghost">Descargar PDF</a>`:''}
+  </div>`;
+
+  document.getElementById('ccContent').innerHTML = html;
+
+  // Load protected video
+  if (l.content_type==='video') loadVideo(l.id);
+}
+
+async function loadVideo(lessonId) {
+  try {
+    const r = await fetch(`/api/proxy/video/${lessonId}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    document.getElementById('vFrame').src = `/api/proxy/embed/${d.token}`;
+  } catch {
+    document.getElementById('videoBox').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">Error al cargar video. Recargá la página.</div>';
+  }
+}
+
+async function toggleDone(id) {
+  await fetch(`/api/client/progress/${id}`,{method:'POST'});
+  lessons = await fetch(`/api/client/modules/${currentModuleId}/lessons`).then(r=>r.json());
+  updateSidebar();
+  selectLesson(id);
+}
+
+function typeLabel(t) { return t==='video'?'▶ Video':t==='pdf'?'📄 PDF':'🔗 Link'; }
+
+// ── RESOURCES (softwares + materials) ──
+let allSoftwares = [];
+async function loadResources() {
+  // Load softwares
+  try {
+    if (isAdmin) {
+      allSoftwares = await fetch('/api/admin/softwares').then(r=>r.json());
+    } else {
+      allSoftwares = await fetch('/api/client/softwares').then(r=>r.json());
+    }
+  } catch { allSoftwares = []; }
+
+  const list = document.getElementById('softwareList');
+  if (!allSoftwares.length && !isAdmin) {
+    list.innerHTML = '<p style="color:var(--text3);margin-bottom:20px;">No tenés softwares asignados a tu plan.</p>';
+  } else {
+    list.innerHTML = allSoftwares.map(s => {
+      // Video embed
+      let videoHtml = '';
+      if (s.tutorial_url) {
+        const embedUrl = s.tutorial_url.includes('loom.com/share/')
+          ? 'https://www.loom.com/embed/' + s.tutorial_url.split('loom.com/share/')[1].split('?')[0] + '?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true'
+          : s.tutorial_url.includes('youtube.com') ? 'https://www.youtube.com/embed/' + new URL(s.tutorial_url).searchParams.get('v')
+          : s.tutorial_url.includes('youtu.be') ? 'https://www.youtube.com/embed/' + s.tutorial_url.split('youtu.be/')[1].split('?')[0]
+          : s.tutorial_url;
+        videoHtml = `<div class="sw-item-section"><div class="sw-item-label">Video Tutorial</div><div class="sw-item-video"><iframe src="${esc(embedUrl)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe></div></div>`;
+      }
+      // Download + actions
+      // Links: combine global software links + user-specific links
+      let linksHtml = '';
+      const globalLinks = s.links ? (typeof s.links==='string'?JSON.parse(s.links):s.links) : [];
+      const userLinks = s.user_links ? (typeof s.user_links==='string'?JSON.parse(s.user_links):s.user_links) : [];
+      const allLinks = [...globalLinks, ...userLinks];
+      if (allLinks.length || s.download_url) {
+        linksHtml = '<div class="sw-item-section"><div class="sw-item-label">Links</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">';
+        if (s.download_url) linksHtml += `<a href="${esc(s.download_url)}" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;background:linear-gradient(135deg,#4a9eff,#3178d6);border-radius:10px;color:#fff;font-size:13px;font-weight:600;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,158,255,0.25);text-align:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar Software</a>`;
+        allLinks.forEach(l => {
+          if (l.copyMode) {
+            // Copy mode: click copies URL instead of opening
+            linksHtml += `<div onclick="clickCopy(this,'${esc(l.url)}','${esc(l.name)} copiado')" style="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;transition:all 0.2s;text-align:center;user-select:none;"
+              onmouseover="this.style.borderColor='var(--green)';this.style.background='rgba(52,211,153,0.06)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              ${esc(l.name)}</div>`;
+          } else {
+            // Normal link: opens in new tab
+            linksHtml += `<a href="${esc(l.url)}" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;transition:all 0.2s;text-align:center;"
+              onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(74,158,255,0.06)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              ${esc(l.name)}</a>`;
+          }
+        });
+        linksHtml += '</div></div>';
+      }
+      // Credentials (click to copy)
+      let credsHtml = '';
+      if (s.cred_username || s.cred_password) {
+        credsHtml = `<div class="sw-item-section"><div class="sw-item-label">Tus Credenciales</div>`;
+        if (s.cred_username) credsHtml += `<div class="sw-cred-box" onclick="clickCopy(this,'${esc(s.cred_username)}','Usuario copiado')" style="cursor:pointer;" title="Click para copiar"><div><div class="sw-cred-label">Usuario</div><div class="sw-cred-value">${esc(s.cred_username)}</div></div><span class="sw-copy-hint">Click para copiar</span></div>`;
+        if (s.cred_password) credsHtml += `<div class="sw-cred-box" onclick="clickCopy(this,'${esc(s.cred_password)}','Contraseña copiada')" style="cursor:pointer;" title="Click para copiar"><div><div class="sw-cred-label">Contraseña</div><div class="sw-cred-value">${esc(s.cred_password)}</div></div><span class="sw-copy-hint">Click para copiar</span></div>`;
+        if (s.cred_extra) credsHtml += `<div class="sw-cred-box" onclick="clickCopy(this,'${esc(s.cred_extra)}','Info copiada')" style="cursor:pointer;" title="Click para copiar"><div><div class="sw-cred-label">Info extra</div><div class="sw-cred-value" style="font-family:var(--font);font-size:13px;">${esc(s.cred_extra)}</div></div><span class="sw-copy-hint">Click para copiar</span></div>`;
+        credsHtml += '</div>';
+      } else if (!isAdmin) {
+        credsHtml = '<div class="sw-item-section"><div class="sw-no-creds">Credenciales no asignadas todavía. Contactá al admin.</div></div>';
+      }
+      return `<div class="sw-item" data-swid="${s.id}"
+        ${isAdmin?`draggable="true" ondragstart="dragSw(event,${s.id})" ondragover="dragOverSw(event)" ondrop="dropSw(event,${s.id})" ondragend="dragEndSw()"`:''}
+        >
+        ${isAdmin?`<div class="sw-item-admin admin-only">
+          <span class="sw-drag-handle" style="cursor:grab;font-size:16px;opacity:0.4;margin-right:4px;" title="Arrastrar para reordenar">⠿</span>
+          <button class="card-action-btn" onclick="openSoftwareModal(${s.id})">✏️</button>
+          <button class="card-action-btn del" onclick="deleteSoftware(${s.id})">🗑</button>
+        </div>`:''}
+        <div class="sw-item-header">
+          <div class="sw-item-icon">${s.icon||'💻'}</div>
+          <div><div class="sw-item-title">${esc(s.name)}</div><div class="sw-item-desc">${esc(s.description||'')}</div></div>
+        </div>
+        ${videoHtml}${linksHtml}${credsHtml}
+      </div>`;
+    }).join('');
+  }
+
+  // Load other resources (PDFs, links)
+  const otherDiv = document.getElementById('resourcesOther');
+  try {
+    const res = await fetch('/api/client/resources').then(r=>r.json());
+    if (!res.length) { otherDiv.innerHTML=''; return; }
+    otherDiv.innerHTML = `<div style="font-size:16px;font-weight:700;margin-bottom:14px;">Materiales</div>
+      <div class="resources-grid">${res.map(r => {
+        const isPdf = r.resource_type==='pdf';
+        return `<a href="${esc(r.file_url)}" ${isPdf?'download':'target="_blank" rel="noopener"'} class="res-card">
+          <div class="res-icon ${r.resource_type}">
+            ${isPdf?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'}
+          </div>
+          <div><div class="res-title">${esc(r.title)}</div><div class="res-desc">${esc(r.description||'')}</div></div>
+        </a>`;
+      }).join('')}</div>`;
+  } catch { otherDiv.innerHTML=''; }
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text);
+  btn.textContent = '✓ Copiado';
+  setTimeout(() => btn.textContent = 'Copiar', 1500);
+}
+
+function clickCopy(el, text, msg) {
+  navigator.clipboard.writeText(text);
+  // Flash the box green briefly
+  el.style.borderColor = 'var(--green)';
+  el.style.background = 'rgba(52,211,153,0.08)';
+  setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 600);
+  // Show toast
+  const toast = document.getElementById('copyToast');
+  toast.textContent = '✓ ' + msg;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// Admin: Software CRUD
+let dashSwLinks = [];
+function renderDashSwLinks() {
+  if (!dashSwLinks.length) return '<div style="font-size:12px;color:var(--text3);">Sin links. Agregá uno.</div>';
+  return dashSwLinks.map((l,i) => `
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      <input class="modal-input" placeholder="Nombre" value="${esc(l.name||'')}" onchange="dashSwLinks[${i}].name=this.value" style="flex:1;">
+      <input class="modal-input" placeholder="https://..." value="${esc(l.url||'')}" onchange="dashSwLinks[${i}].url=this.value" style="flex:2;">
+      <button class="modal-btn modal-btn-cancel" onclick="dashSwLinks.splice(${i},1);document.getElementById('dash-sw-links').innerHTML=renderDashSwLinks()" style="padding:6px 10px;">✕</button>
+    </div>`).join('');
+}
+function openSoftwareModal(id) {
+  const s = id ? allSoftwares.find(x=>x.id===id) : null;
+  dashSwLinks = s?.links ? (typeof s.links==='string'?JSON.parse(s.links):s.links) : [];
+  if (!Array.isArray(dashSwLinks)) dashSwLinks = [];
+  openModal(`
+    <div class="modal-title">${s?'Editar':'Nuevo'} Software</div>
+    <div style="max-height:70vh;overflow-y:auto;padding-right:4px;">
+    <div class="modal-field"><div class="modal-label">Nombre</div><input class="modal-input" id="sw-name" value="${s?esc(s.name):''}" placeholder="Autocontestador"></div>
+    <div class="modal-field"><div class="modal-label">Descripción</div><textarea class="modal-textarea" id="sw-desc">${s?esc(s.description||''):''}</textarea></div>
+    <div class="modal-field"><div class="modal-label">URL video tutorial</div><input class="modal-input" id="sw-tutorial" value="${s?esc(s.tutorial_url||''):''}" placeholder="https://www.loom.com/share/..."></div>
+    <div class="modal-field"><div class="modal-label">Icono (emoji)</div><input class="modal-input" id="sw-icon" value="${s?s.icon:'💻'}" style="width:60px;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="modal-label" style="margin:0;">Links</div>
+        <button class="cc-btn cc-btn-ghost" onclick="dashSwLinks.push({name:'',url:''});document.getElementById('dash-sw-links').innerHTML=renderDashSwLinks()" style="font-size:11px;padding:4px 10px;">+ Agregar link</button>
+      </div>
+      <div id="dash-sw-links">${renderDashSwLinks()}</div>
+    </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="saveSoftware(${id||'null'})">Guardar</button>
+    </div>
+  `);
+}
+async function saveSoftware(id) {
+  // Read link inputs before saving
+  const linkContainer = document.getElementById('dash-sw-links');
+  const linkInputs = linkContainer.querySelectorAll('.modal-input');
+  for (let i=0; i<linkInputs.length; i+=2) {
+    const idx = Math.floor(i/2);
+    if (dashSwLinks[idx]) { dashSwLinks[idx].name = linkInputs[i].value; dashSwLinks[idx].url = linkInputs[i+1].value; }
+  }
+  const body = {
+    name: document.getElementById('sw-name').value,
+    description: document.getElementById('sw-desc').value,
+    download_url: '',
+    tutorial_url: document.getElementById('sw-tutorial').value,
+    icon: document.getElementById('sw-icon').value || '💻',
+    links: dashSwLinks.filter(l=>l.name&&l.url),
+  };
+  if (!body.name) return;
+  if (id) await fetch(`/api/admin/softwares/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  else await fetch('/api/admin/softwares',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  closeModal(); loadResources();
+}
+async function deleteSoftware(id) {
+  if (!confirm('¿Eliminar este software?')) return;
+  await fetch(`/api/admin/softwares/${id}`,{method:'DELETE'});
+  loadResources();
+}
+
+// ── DRAG & DROP SOFTWARES ──
+let draggedSwId = null;
+function dragSw(e, id) {
+  draggedSwId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = document.querySelector(`[data-swid="${id}"]`); if(el) el.classList.add('dragging-sw'); }, 0);
+}
+function dragOverSw(e) {
+  e.preventDefault();
+  // Clear all indicators
+  document.querySelectorAll('.sw-item').forEach(el => { el.classList.remove('drag-over-top','drag-over-bottom'); });
+  const target = e.target.closest('.sw-item');
+  if (!target || parseInt(target.dataset.swid) === draggedSwId) return;
+  const rect = target.getBoundingClientRect();
+  const mid = rect.top + rect.height / 2;
+  if (e.clientY < mid) target.classList.add('drag-over-top');
+  else target.classList.add('drag-over-bottom');
+}
+function dragEndSw() {
+  draggedSwId = null;
+  document.querySelectorAll('.sw-item').forEach(el => { el.classList.remove('dragging-sw','drag-over-top','drag-over-bottom'); });
+}
+async function dropSw(e, targetId) {
+  e.preventDefault();
+  document.querySelectorAll('.sw-item').forEach(el => { el.classList.remove('dragging-sw','drag-over-top','drag-over-bottom'); });
+  if (!draggedSwId || draggedSwId === targetId) return;
+  const fromIdx = allSoftwares.findIndex(s => s.id === draggedSwId);
+  const toIdx = allSoftwares.findIndex(s => s.id === targetId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  const [moved] = allSoftwares.splice(fromIdx, 1);
+  allSoftwares.splice(toIdx, 0, moved);
+  // Update order in backend
+  const order = allSoftwares.map((s, i) => ({ id: s.id, order_position: i + 1 }));
+  await fetch('/api/admin/softwares/reorder', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order }) });
+  draggedSwId = null;
+  loadResources();
+}
+
+// ── MODAL HELPERS ──
+function openModal(html) { document.getElementById('modalBox').innerHTML=html; document.getElementById('modalBg').classList.add('open'); }
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+
+// ── MODULE MODAL ──
+function openModuleModal(id) {
+  const m = id ? modules.find(x=>x.id===id) : null;
+  openModal(`
+    <div class="modal-title">${m?'Editar':'Nuevo'} Módulo</div>
+    <div class="modal-field"><div class="modal-label">Título</div><input class="modal-input" id="m-title" value="${m?esc(m.title):''}" placeholder="Ej: Client Acquisition"></div>
+    <div class="modal-field"><div class="modal-label">Descripción</div><textarea class="modal-textarea" id="m-desc" placeholder="De qué trata este módulo...">${m?esc(m.description||''):''}</textarea></div>
+    <div class="modal-field">
+      <div class="modal-label">Imagen de portada</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="modal-input" id="m-cover" value="${m?esc(m.cover_image||''):''}" placeholder="URL o subí una imagen" style="flex:1;">
+        <label style="padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap;">
+          📁 Subir
+          <input type="file" accept="image/*" onchange="uploadCoverImage(this)" style="display:none;">
+        </label>
+      </div>
+      <div id="cover-upload-status" style="font-size:11px;color:var(--text3);margin-top:4px;"></div>
+    </div>
+    <div class="modal-field"><div class="modal-label">Icono (emoji)</div><input class="modal-input" id="m-icon" value="${m?m.icon:'📚'}" style="width:60px;"></div>
+    <div class="modal-field">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="m-bonus" ${m&&m.is_bonus?'checked':''} style="width:18px;height:18px;">
+        <span style="padding:6px 14px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;color:#fff;font-size:13px;font-weight:700;">🎁 Bonus</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="saveModule(${id||'null'})">Guardar</button>
+    </div>
+  `);
+}
+async function saveModule(id) {
+  const body = {
+    title: document.getElementById('m-title').value,
+    description: document.getElementById('m-desc').value,
+    cover_image: document.getElementById('m-cover').value,
+    icon: document.getElementById('m-icon').value || '📚',
+    is_bonus: document.getElementById('m-bonus').checked,
+  };
+  if (!body.title) return;
+  if (id) {
+    const m = modules.find(x=>x.id===id);
+    body.order_position = m.order_position;
+    await fetch(`/api/admin/modules/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  } else {
+    await fetch('/api/admin/modules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  }
+  closeModal(); loadClassroom();
+}
+async function deleteModule(id) {
+  if (!confirm('¿Eliminar este módulo y todas sus lecciones?')) return;
+  await fetch(`/api/admin/modules/${id}`,{method:'DELETE'});
+  loadClassroom();
+}
+
+// ── LESSON MODAL ──
+function openLessonModal(id) {
+  const l = id ? lessons.find(x=>x.id===id) : null;
+  openModal(`
+    <div class="modal-title">${l?'Editar':'Nueva'} Lección</div>
+    <div class="modal-field"><div class="modal-label">Título</div><input class="modal-input" id="l-title" value="${l?esc(l.title):''}" placeholder="Nombre de la lección"></div>
+    <div class="modal-field"><div class="modal-label">Tipo</div>
+      <select class="modal-input modal-select" id="l-type">
+        <option value="video" ${l?.content_type==='video'?'selected':''}>Video</option>
+        <option value="pdf" ${l?.content_type==='pdf'?'selected':''}>PDF</option>
+        <option value="link" ${l?.content_type==='link'?'selected':''}>Link</option>
+      </select>
+    </div>
+    <div class="modal-field"><div class="modal-label">URL del contenido</div><input class="modal-input" id="l-url" value="${l?esc(l.content_url):''}" placeholder="https://www.loom.com/share/..."></div>
+    <div class="modal-field"><div class="modal-label">Descripción (opcional)</div><textarea class="modal-textarea" id="l-desc">${l?esc(l.description||''):''}</textarea></div>
+    <div class="modal-field"><div class="modal-label">Duración (opcional)</div><input class="modal-input" id="l-dur" value="${l?esc(l.duration||''):''}" placeholder="12:30" style="width:100px;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="saveLesson(${id||'null'})">Guardar</button>
+    </div>
+  `);
+}
+async function saveLesson(id) {
+  const body = {
+    module_id: currentModuleId,
+    title: document.getElementById('l-title').value,
+    content_type: document.getElementById('l-type').value,
+    content_url: document.getElementById('l-url').value,
+    description: document.getElementById('l-desc').value,
+    duration: document.getElementById('l-dur').value,
+  };
+  if (!body.title || !body.content_url) return;
+  if (id) {
+    const l = lessons.find(x=>x.id===id);
+    body.order_position = l.order_position;
+    await fetch(`/api/admin/lessons/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  } else {
+    await fetch('/api/admin/lessons',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  }
+  closeModal();
+  lessons = await fetch(`/api/client/modules/${currentModuleId}/lessons`).then(r=>r.json());
+  updateSidebar();
+  if (id && activeLesson===id) selectLesson(id);
+}
+async function deleteLessonInline(id) {
+  if (!confirm('¿Eliminar esta lección?')) return;
+  await fetch(`/api/admin/lessons/${id}`,{method:'DELETE'});
+  lessons = await fetch(`/api/client/modules/${currentModuleId}/lessons`).then(r=>r.json());
+  updateSidebar();
+  if (activeLesson===id) {
+    activeLesson=null;
+    document.getElementById('ccContent').innerHTML='<div class="cc-empty"><p>Seleccioná una lección</p></div>';
+  }
+}
+
+// ── UPLOAD COVER IMAGE ──
+async function uploadCoverImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('cover-upload-status');
+  status.textContent = 'Subiendo...';
+  status.style.color = 'var(--accent)';
+  const form = new FormData();
+  form.append('image', file);
+  try {
+    const res = await fetch('/api/admin/upload-image', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    document.getElementById('m-cover').value = data.url;
+    status.textContent = '✅ Imagen subida';
+    status.style.color = 'var(--green)';
+  } catch (err) {
+    status.textContent = '❌ Error: ' + err.message;
+    status.style.color = '#e74c3c';
+  }
+}
+
+// ── DRAG & DROP MODULES ──
+let draggedModuleId = null;
+function dragModule(e,id) { draggedModuleId=id; e.dataTransfer.effectAllowed='move'; }
+async function dropModule(e,targetId) {
+  e.preventDefault();
+  if (!draggedModuleId || draggedModuleId===targetId) return;
+  const fromIdx = modules.findIndex(m=>m.id===draggedModuleId);
+  const toIdx = modules.findIndex(m=>m.id===targetId);
+  const [moved] = modules.splice(fromIdx,1);
+  modules.splice(toIdx,0,moved);
+  const order = modules.map((m,i)=>({id:m.id, order_position:i+1}));
+  await fetch('/api/admin/modules/reorder',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({order})});
+  draggedModuleId=null;
+  loadClassroom();
+}
+
+// ── DRAG & DROP LESSONS ──
+let draggedLessonId = null;
+function dragLesson(e,id) { draggedLessonId=id; e.dataTransfer.effectAllowed='move'; e.stopPropagation(); }
+async function dropLesson(e,targetId) {
+  e.preventDefault(); e.stopPropagation();
+  if (!draggedLessonId || draggedLessonId===targetId) return;
+  const fromIdx = lessons.findIndex(l=>l.id===draggedLessonId);
+  const toIdx = lessons.findIndex(l=>l.id===targetId);
+  const [moved] = lessons.splice(fromIdx,1);
+  lessons.splice(toIdx,0,moved);
+  const order = lessons.map((l,i)=>({id:l.id, order_position:i+1}));
+  await fetch('/api/admin/lessons/reorder',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({order})});
+  draggedLessonId=null;
+  updateSidebar();
+}
+
+// ── BULK IMPORT ──
+function openBulkModal() {
+  openModal(`
+    <div class="modal-title">📋 Import Masivo de Lecciones</div>
+    <div class="modal-field">
+      <div class="modal-label">Pegá tus lecciones (una por línea)</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Pegá directo de Skool (título + URL abajo) o con formato <strong>Título | URL</strong></div>
+      <textarea class="modal-textarea" id="bulk-text" style="min-height:180px;" placeholder="Mentalidad del Setting Outbound
+https://www.loom.com/share/abc123
+
+Bases del Setting Outbound
+https://www.loom.com/share/def456
+
+--- o con pipes ---
+
+Limites de Instagram | https://www.loom.com/share/ghi789"></textarea>
+    </div>
+    <button class="modal-btn modal-btn-save" style="width:100%;margin-bottom:8px;" onclick="parseBulk()">Previsualizar</button>
+    <div id="bulk-preview"></div>
+    <div id="bulk-progress-area"></div>
+    <div class="modal-actions" id="bulk-actions" style="display:none;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="executeBulk()">Importar todo</button>
+    </div>
+  `);
+}
+
+let bulkLessons = [];
+function detectType(url) {
+  if (url.includes('loom.com') || url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) return 'video';
+  if (url.endsWith('.pdf') || url.includes('/uploads/')) return 'pdf';
+  return 'link';
+}
+function isUrl(s) { return /^https?:\/\//i.test(s.trim()); }
+
+function parseBulk() {
+  const raw = document.getElementById('bulk-text').value.trim();
+  if (!raw) return;
+  const lines = raw.split('\n').map(l=>l.trim()); // keep empty lines!
+  bulkLessons = [];
+
+  // Smart parser: supports both formats
+  // Format 1: "Título | URL" (pipe separated on same line)
+  // Format 2: Skool-style paste:
+  //   Title text
+  //   https://www.loom.com/share/xxx
+  //   (optional blank lines between entries)
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Skip empty lines
+    if (!line) { i++; continue; }
+
+    // Format 1: pipe separated
+    if (line.includes('|') && !isUrl(line.split('|')[0].trim())) {
+      const parts = line.split('|').map(s=>s.trim());
+      const title = parts[0], url = (parts[1]||'').split('?sid=')[0];
+      if (title && url) bulkLessons.push({ title, content_url: url, content_type: detectType(url) });
+      i++;
+      continue;
+    }
+
+    // If this line IS a URL (orphan, no title before it) — skip
+    if (isUrl(line)) { i++; continue; }
+
+    // This line is a title — scan forward for the URL (skip blank lines)
+    const title = line;
+    let url = '';
+    let j = i + 1;
+    while (j < lines.length) {
+      const next = lines[j];
+      if (!next) { j++; continue; } // skip blanks
+      if (isUrl(next)) {
+        url = next.split('?sid=')[0]; // strip Loom ?sid= params
+        j++;
+        break;
+      }
+      break; // hit another title, no URL found for this one
+    }
+    if (title && url) {
+      bulkLessons.push({ title, content_url: url, content_type: detectType(url) });
+      i = j;
+    } else {
+      i++; // skip title without URL
+    }
+  }
+  const preview = document.getElementById('bulk-preview');
+  preview.innerHTML = '<div class="modal-label" style="margin-bottom:6px;">Preview (' + bulkLessons.length + ' lecciones)</div>' +
+    bulkLessons.map(l => `<div class="bulk-row"><span class="bulk-row-type ${l.content_type}">${l.content_type}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(l.title)}</span></div>`).join('');
+  document.getElementById('bulk-actions').style.display = 'flex';
+}
+
+async function executeBulk() {
+  if (!bulkLessons.length) return;
+  const area = document.getElementById('bulk-progress-area');
+  area.innerHTML = '<div class="bulk-progress"><div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulk-fill" style="width:0%"></div></div></div><div class="bulk-status" id="bulk-status">Importando...</div>';
+  document.getElementById('bulk-actions').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/admin/lessons/bulk', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ module_id: currentModuleId, lessons: bulkLessons })
+    });
+    const data = await res.json();
+    document.getElementById('bulk-fill').style.width = '100%';
+    document.getElementById('bulk-status').textContent = `✅ ${data.created} lecciones importadas`;
+    setTimeout(async () => {
+      closeModal();
+      lessons = await fetch(`/api/client/modules/${currentModuleId}/lessons`).then(r=>r.json());
+      updateSidebar();
+    }, 1500);
+  } catch (err) {
+    document.getElementById('bulk-status').textContent = '❌ Error: ' + err.message;
+  }
+}
+
+// Block right-click on videos
+document.addEventListener('contextmenu', e => { if(e.target.closest('.cc-video')) e.preventDefault(); });
+
+function esc(s) { if(!s)return''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// Auto-link URLs in text
+function linkifyText(text) {
+  return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+// ═══ ONBOARDING (fullscreen wizard — 5 steps) ═══
+const CONTRACT_TEXT = `El presente Acuerdo de Estudiante se celebra en virtud del Acuerdo de Formaci\u00f3n de Prime Hub (el "Acuerdo"), entre <strong>Prime Growth, LLC</strong>, una Limited Liability Company (LLC) constituida y registrada bajo las leyes del Estado de Delaware, Estados Unidos, con domicilio legal en 128 Sunset Blvd #1627, New Castle, DE 19720, EE.UU., EIN <strong>30-1427747</strong>, que opera comercialmente bajo el nombre de fantas\u00eda "AscendX" (en adelante, la "Empresa"), y el Estudiante (en adelante, el "Estudiante"), mayor de edad.
+
+CONSIDERANDO que la Empresa posee experiencia en el \u00e1mbito de cierre de ventas, y que el Estudiante desea que la Empresa le preste dicho servicio en los t\u00e9rminos y condiciones descritos en el presente Acuerdo. AHORA, POR LO TANTO, las Partes acuerdan lo siguiente:
+
+<strong>Servicios a prestar</strong>
+\u2022 Acceso a toda la Formaci\u00f3n y futuras actualizaciones, por un total de 4 meses.
+\u2022 Acceso a sesiones de coaching semanales de la comunidad, responder preguntas, mentorizar y ayuda personalizada de nuestros expertos. Comunicadas dentro de la plataforma, y con responsabilidad del Estudiante asistir.
+\u2022 Soporte 24/7, ya sea con otros estudiantes o con nuestro equipo de Soporte.
+\u2022 Una vez firmado este acuerdo y comenzado el Contrato, se enviar\u00e1 un "Email de bienvenida" con acceso al curso, pasos a seguir, la comunidad y todo lo necesario para maximizar los resultados.
+\u2022 Los servicios a prestar ser\u00e1n realizados solo por la Empresa, no podr\u00e1n ser delegados y realizados por una marca blanca o agencias en nombre de la misma (sin previo acuerdo).
+\u2022 El contrato se mantiene vigente indefinidamente excepto en caso de rescisi\u00f3n por AscendX.
+
+<strong>Compensaci\u00f3n y T\u00e9rminos de Pago</strong>
+Como compensaci\u00f3n del servicio, el Estudiante ya ha pagado, o est\u00e1 pagando parcialmente, el coste del servicio a la Empresa, que su cantidad depende del caso particular acordado en la llamada previa y que el Estudiante se compromete a elegir la opci\u00f3n correcta, siendo consciente que la llamada est\u00e1 grabada, y que elegir incorrectamente resultar\u00eda en pagar el doble por la formaci\u00f3n.
+
+El Estudiante entiende que solo est\u00e1 eligiendo el "precio" del servicio a pago completo, y que se compromete, en caso de pagos fraccionados, a seguir rigurosamente el plan de pago acordado en la llamada grabada, independientemente del m\u00e9todo de pago (Transferencia, Crypto, Tarjeta, Cr\u00e9dito...). Incluyendo fechas y la mayor cantidad, por ofrecer el plan de pago especial en 2 o m\u00e1s cuotas.
+
+Cualquier impago o pago tard\u00edo de las cuotas, en los pagos fraccionados, dar\u00e1 lugar a la suspensi\u00f3n de los servicios hasta su resoluci\u00f3n, donde se pagar\u00e1 a mayores, un 10% de inter\u00e9s.
+
+\u2022 De la misma forma que NO se podr\u00e1 cancelar ni solicitar reembolso sin previa comunicaci\u00f3n entre ambas partes por Email, ya sea por financiaci\u00f3n o cualquier m\u00e9todo de pago.
+\u2022 NO se podr\u00e1 incluso si Hotmart, Stripe o las pasarelas de pago "permiten" iniciar ese tr\u00e1mite.
+\u2022 El Estudiante se compromete a seguir esto a rajatabla, ya que en caso de no hacerlo, incurrir\u00eda en tener que hacer el pago con un 25% de recargo (deuda gestionada por Stripe).
+
+Formaci\u00f3n Completa: Master Growth con IA (1.000 USD)
+
+<strong>Rescisi\u00f3n</strong>
+A. El presente Acuerdo podr\u00e1 ser rescindido por AscendX en caso de que la otra parte haya incumplido un pacto, obligaci\u00f3n o garant\u00eda y dicho incumplimiento permanezca sin subsanar durante treinta (30) d\u00edas tras el env\u00edo de la notificaci\u00f3n correspondiente a la parte.
+
+En caso de que AscendX rescinda el presente Acuerdo de conformidad con este p\u00e1rrafo, todos los pagos ser\u00e1n definitivos y no se conceder\u00e1 ning\u00fan reembolso, adem\u00e1s de no tener ninguna responsabilidad frente a la otra parte por el ejercicio de dicho derecho o rescisi\u00f3n.
+
+<strong>Derecho a devoluci\u00f3n</strong>
+Tienes derecho a la devoluci\u00f3n \u00edntegra del dinero luego de pasados los 120 d\u00edas de formaci\u00f3n siempre que cumplas los siguientes requisitos:
+
+\u2022 Ver el contenido de los m\u00f3dulos fundamentales completos.
+\u2022 Asistir al 90% de sesiones en vivo desde que ingres\u00f3.
+\u2022 Participar activamente en la comunidad todos los d\u00edas, interactuando con al menos 3 publicaciones de otros miembros y publicando al menos 1 aporte \u00fatil por d\u00eda.
+\u2022 Validar oferta en clase con cualquiera de los mentores.
+\u2022 Enviar un m\u00ednimo de 200 mensajes de prospecci\u00f3n nuevos cada d\u00eda durante al menos 90 d\u00edas consecutivos. Los mensajes deben ser a contactos nuevos y no repetidos.
+\u2022 Mantener un registro detallado y actualizado de todos los datos de contacto y resultados de prospecci\u00f3n en un sistema de CRM o hoja de c\u00e1lculo.
+\u2022 Solicitar y documentar feedback espec\u00edfico sobre la estrategia y ejecuci\u00f3n de prospecci\u00f3n al menos una vez por semana con cualquier mentor.
+\u2022 Optimizar todos los perfiles de prospecci\u00f3n de forma correcta seg\u00fan lo indicado en la formaci\u00f3n.
+\u2022 Solicitar y documentar feedback detallado sobre al menos 3 llamadas de ventas por semana con el equipo de soporte o el coach asignado.
+\u2022 Tener registro en video de todas las llamadas de venta efectuadas desde el inicio de la formaci\u00f3n hasta el final de la misma, que sean concordantes con el CRM de prospecci\u00f3n.
+\u2022 Solicitar y documentar feedback espec\u00edfico sobre el embudo de entrega de servicio al menos una vez al mes.
+\u2022 Solicitar y documentar feedback detallado sobre las operaciones del negocio al menos una vez al mes.
+\u2022 Enviar un reporte semanal completo al equipo, detallando las actividades de prospecci\u00f3n, interacciones en redes sociales, resultados obtenidos, y cualquier otro dato relevante.
+\u2022 Subir compromisos un total de 90 d\u00edas consecutivos, sin fallar.
+\u2022 Asistir de forma puntual y prender la c\u00e1mara en todas las clases desde el inicio de la formaci\u00f3n hasta el final.
+
+<strong>Derechos sobre el producto del trabajo</strong>
+Por la presente, el Estudiante concede a la Empresa un derecho y licencia ilimitados, sin restricciones, libres de regal\u00edas, totalmente pagados, mundiales y no exclusivos sobre su imagen y datos personales. Solo aplica a contenido generado en llamadas de coaching, testimonios, mensajes y dem\u00e1s, con fines \u00fanicamente publicitarios por parte de la Empresa.
+
+<strong>Confidencialidad y Propiedad Industrial</strong>
+El Estudiante acepta que el producto del trabajo es propiedad \u00fanica y exclusiva de la Empresa, y lo tratar\u00e1 de forma confidencial, sin revelarlo a terceros ni utilizarlo en beneficio de otros. El Estudiante se compromete a informar a la Empresa por escrito inmediatamente si cualquier informaci\u00f3n se divulga inadvertidamente a terceros.
+
+Toda la formaci\u00f3n est\u00e1 protegida por derechos de autor y la Empresa no autoriza su distribuci\u00f3n, modificaci\u00f3n, venta ni alquiler. El Estudiante no podr\u00e1 impartir formaciones de ning\u00fan tipo, con un temario similar a esta Formaci\u00f3n, en los pr\u00f3ximos 7 a\u00f1os. En caso de uso indebido por el Estudiante, deber\u00e1 pagar la cuant\u00eda de 25.000\u20ac a la Empresa en un plazo no superior a 30 d\u00edas naturales.
+
+<strong>Garant\u00edas y declaraciones</strong>
+El producto es original, desarrollado y creado \u00fanicamente por la Empresa. El Proveedor de Servicios se compromete a ofrecer todo el apoyo necesario para que el Alumno alcance el objetivo establecido de conseguir su primer cliente.
+
+El Participante reconoce que, desde el momento de la compra, tuvo acceso completo a los materiales, recursos y beneficios mencionados, y que dicho acceso constituye la prestaci\u00f3n efectiva del servicio. Asimismo, declara haber recibido toda la informaci\u00f3n necesaria sobre el contenido, formato y modalidad del programa antes de realizar el pago.
+
+En virtud de lo anterior, el Participante renuncia expresamente a iniciar cualquier tipo de disputa, contracargo o reclamo ante su entidad financiera o procesador de pagos, al reconocer que el servicio fue correctamente brindado y que el acceso al contenido digital equivale a la entrega total del producto adquirido.
+
+Por consiguiente, no se aceptar\u00e1n reembolsos ni cancelaciones una vez otorgado el acceso al contenido o a la comunidad, salvo causa debidamente justificada y evaluada por el equipo de Prime Growth, LLC.
+
+<strong>Indemnizaci\u00f3n</strong>
+Por la presente, la Empresa y el Estudiante indemnizan y acuerdan defenderse y exonerarse a s\u00ed mismos, sus socios, directores, funcionarios, aliados, empleados y agentes, de y contra cualquier da\u00f1o, p\u00e9rdida, costo y gasto (incluyendo honorarios de abogados) sufridos por cualquiera de las Partes, como resultado de un incumplimiento de este Acuerdo.
+
+<strong>Disposiciones varias</strong>
+\u2022 <strong>Integridad del Acuerdo:</strong> El presente Contrato constituye el acuerdo \u00edntegro de las Partes. No podr\u00e1 modificarse salvo en un acuerdo separado por escrito firmado por ambas partes.
+\u2022 <strong>Divisibilidad:</strong> Si cualquier disposici\u00f3n fuera determinada como inv\u00e1lida, las restantes disposiciones continuar\u00e1n en pleno vigor y efecto.
+\u2022 <strong>Legislaci\u00f3n aplicable:</strong> El presente Contrato se rige por las leyes del Estado de Delaware, Estados Unidos. Cualquier demanda deber\u00e1 iniciarse en los tribunales competentes del Estado de Delaware.
+\u2022 <strong>Enmiendas y modificaciones:</strong> Ninguna modificaci\u00f3n ser\u00e1 vinculante a menos que se haga por escrito y sea firmada por un representante autorizado de cada Parte.
+\u2022 <strong>Limitaci\u00f3n de la relaci\u00f3n:</strong> Nada de lo aqu\u00ed contenido crear\u00e1 una empresa conjunta o sociedad entre las Partes.
+\u2022 <strong>Contrapartes:</strong> El presente Acuerdo podr\u00e1 ser ejecutado en contrapartes, cada una de las cuales se considerar\u00e1 un original. Una copia entregada por correo electr\u00f3nico tiene el mismo efecto jur\u00eddico que una copia original.
+
+EN FE DE LO CUAL, las Partes firman el presente Acuerdo, siendo la fecha de firma la Fecha de Entrada en Vigor.
+
+<strong>Empresa: Prime Growth, LLC (d/b/a AscendX)</strong>
+Por: Juan Cruz Bernal \u2014 Authorized Person / Member
+Domicilio: 128 Sunset Blvd #1627, New Castle, DE 19720, EE.UU.
+EIN: 30-1427747
+
+<strong>Estudiante: (firmado electr\u00f3nicamente)</strong>`;
+
+async function loadOnboarding() {
+  const data = await fetch('/api/client/onboarding').then(r=>r.json());
+  const step = data.onboarding_step || 0;
+
+  // Update progress
+  document.getElementById('onbStepLabel').textContent = step >= 5 ? 'Completado' : 'Paso ' + (step+1) + ' de 5';
+  document.getElementById('onbProgressBar').style.width = Math.min(100, ((step+1)/5)*100) + '%';
+
+  const content = document.getElementById('onbContent');
+
+  const isReserve = user.access_type === 'reserve';
+  const totalSteps = isReserve ? 2 : 5;
+
+  // Reserve flow: step 0 = video, step 1 = proofs, done at step 2+
+  // Full flow: step 0 = video, 1 = contract, 2 = proofs, 3 = form, 4 = whatsapp, done at step 5+
+  const currentStep = isReserve ? Math.min(step, 2) : step;
+  document.getElementById('onbStepLabel').textContent = currentStep >= totalSteps ? 'Completado' : 'Paso ' + (currentStep+1) + ' de ' + totalSteps;
+  document.getElementById('onbProgressBar').style.width = Math.min(100, ((currentStep+1)/totalSteps)*100) + '%';
+
+  if (isReserve) {
+    // ── RESERVE ONBOARDING (2 steps: video + proofs) ──
+    if (step === 0) {
+      content.innerHTML = `
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="font-size:48px;margin-bottom:12px;">🎬</div>
+          <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Bienvenido, ${esc(user.name||'')}!</h2>
+          <p style="color:var(--text3);font-size:15px;">Mira este video de introduccion</p>
+        </div>
+        <div style="aspect-ratio:16/9;border-radius:20px;overflow:hidden;border:1px solid rgba(74,184,254,0.15);box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 30px rgba(74,184,254,0.08);margin-bottom:24px;">
+          <iframe src="https://www.loom.com/embed/cff024e9fb7f4e8e802b1bdc4496e0d1" style="width:100%;height:100%;border:none;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe>
+        </div>
+        <button class="cc-btn cc-btn-primary" onclick="completeOnbStep(1)" style="width:100%;padding:16px;font-size:15px;border-radius:14px;">Siguiente →</button>`;
+    } else if (step === 1) {
+      content.innerHTML = `
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="font-size:48px;margin-bottom:12px;">🧾</div>
+          <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Subi tus comprobantes de pago</h2>
+          <p style="color:var(--text3);font-size:15px;">Foto o PDF de la transferencia / captura del pago</p>
+        </div>
+        <div id="proofList" style="margin-bottom:16px;"></div>
+        <label style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px;background:rgba(74,184,254,0.03);border:2px dashed rgba(74,184,254,0.2);border-radius:20px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(74,184,254,0.5)'" onmouseout="this.style.borderColor='rgba(74,184,254,0.2)'">
+          <div style="font-size:40px;">📎</div>
+          <span style="color:#4ab8fe;font-weight:700;font-size:16px;">Click para subir comprobante</span>
+          <span style="color:var(--text3);font-size:12px;">JPG, PNG o PDF — max 20MB</span>
+          <input type="file" accept="image/*,.pdf" onchange="uploadProof(this)" style="display:none;">
+        </label>`;
+      loadProofList();
+    } else {
+      content.innerHTML = `
+        <div style="text-align:center;">
+          <div style="font-size:64px;margin-bottom:16px;">🎉</div>
+          <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:12px;">Onboarding completado!</h2>
+          <p style="color:var(--text3);font-size:15px;margin-bottom:24px;">Tu cuenta esta en revision. Te avisaremos cuando este aprobada.</p>
+        </div>`;
+      setTimeout(() => showMainView('pending'), 2500);
+    }
+    return;
+  }
+
+  // ── FULL ONBOARDING (5 steps) ──
+  if (step === 0) {
+    content.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">🎬</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Bienvenido, ${esc(user.name||'')}!</h2>
+        <p style="color:var(--text3);font-size:15px;">Mira este video antes de continuar</p>
+      </div>
+      <div style="aspect-ratio:16/9;border-radius:20px;overflow:hidden;border:1px solid rgba(74,184,254,0.15);box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 30px rgba(74,184,254,0.08);margin-bottom:24px;">
+        <iframe src="https://www.loom.com/embed/cff024e9fb7f4e8e802b1bdc4496e0d1" style="width:100%;height:100%;border:none;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen></iframe>
+      </div>
+      <button class="cc-btn cc-btn-primary" onclick="completeOnbStep(1)" style="width:100%;padding:16px;font-size:15px;border-radius:14px;">Siguiente →</button>`;
+  } else if (step === 1) {
+    // STEP 2: Contract
+    content.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">📄</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Firma el contrato</h2>
+        <p style="color:var(--text3);font-size:15px;">Lee los terminos y completa tus datos</p>
+      </div>
+      <form onsubmit="submitContract(event)" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="max-height:400px;overflow-y:auto;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;font-size:13px;color:var(--text2);line-height:1.9;">
+          ${CONTRACT_TEXT}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><label class="modal-label">Nombre completo</label><input class="modal-input" id="ct-name" required placeholder="Tu nombre completo"></div>
+          <div><label class="modal-label">DNI / Documento</label><input class="modal-input" id="ct-doc" required placeholder="Numero de documento"></div>
+        </div>
+        <div><label class="modal-label">Direccion completa</label><input class="modal-input" id="ct-address" required placeholder="Tu direccion"></div>
+        <div><label class="modal-label">Fecha de pago</label><input class="modal-input" type="date" id="ct-date" required></div>
+        <div><label class="modal-label">Moneda del pago</label>
+          <select class="modal-input" id="ct-currency" onchange="toggleCurrency()" style="appearance:auto;">
+            <option value="USD">Dolares (USD)</option>
+            <option value="ARS">Pesos Argentinos (ARS)</option>
+          </select>
+        </div>
+        <div id="ct-usd-field"><label class="modal-label">Monto pagado (USD)</label><input class="modal-input" type="number" id="ct-amount-usd" step="0.01" min="0" required placeholder="Ej: 1000"></div>
+        <div id="ct-ars-field" style="display:none;"><label class="modal-label">Monto pagado (ARS)</label><input class="modal-input" type="number" id="ct-amount-ars" step="0.01" min="0" placeholder="Ej: 500000"></div>
+        <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:16px;background:rgba(74,184,254,0.04);border:1px solid rgba(74,184,254,0.15);border-radius:14px;">
+          <input type="checkbox" id="ct-accept" required style="width:22px;height:22px;flex-shrink:0;">
+          <span style="font-size:14px;color:#fff;font-weight:600;">He leido y acepto los terminos del acuerdo</span>
+        </label>
+        <button type="submit" class="cc-btn cc-btn-primary" style="padding:16px;font-size:15px;border-radius:14px;">Firmar Contrato →</button>
+      </form>`;
+  } else if (step === 2) {
+    // STEP 3: Payment proofs
+    content.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">🧾</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Subi tus comprobantes de pago</h2>
+        <p style="color:var(--text3);font-size:15px;">Foto o PDF de la transferencia / captura del pago</p>
+      </div>
+      <div id="proofList" style="margin-bottom:16px;"></div>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px;background:rgba(74,184,254,0.03);border:2px dashed rgba(74,184,254,0.2);border-radius:20px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(74,184,254,0.5)'" onmouseout="this.style.borderColor='rgba(74,184,254,0.2)'">
+        <div style="font-size:40px;">📎</div>
+        <span style="color:#4ab8fe;font-weight:700;font-size:16px;">Click para subir comprobante</span>
+        <span style="color:var(--text3);font-size:12px;">JPG, PNG o PDF — max 20MB</span>
+        <input type="file" accept="image/*,.pdf" onchange="uploadProof(this)" style="display:none;">
+      </label>`;
+    loadProofList();
+  } else if (step === 3) {
+    // STEP 4: Google Form
+    content.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:48px;margin-bottom:12px;">📋</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Completa el formulario</h2>
+        <p style="color:var(--text3);font-size:15px;">Necesitamos saber un poco sobre vos y tu negocio</p>
+      </div>
+      <div style="border-radius:20px;overflow:hidden;border:1px solid rgba(74,184,254,0.15);height:650px;">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc27GAJ19ZVmRGDPS66kNrdWXMnMm9JlPbuAyz1kkYK8_HcSg/viewform?embedded=true" style="width:100%;height:100%;border:none;"></iframe>
+      </div>
+      <button class="cc-btn cc-btn-primary" onclick="completeOnbStep(4)" style="width:100%;padding:16px;font-size:15px;border-radius:14px;margin-top:16px;">Siguiente →</button>`;
+  } else if (step === 4) {
+    // STEP 5: WhatsApp
+    content.innerHTML = `
+      <div style="text-align:center;">
+        <div style="font-size:64px;margin-bottom:16px;">💬</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:12px;">Ultimo paso!</h2>
+        <p style="color:var(--text3);font-size:15px;max-width:400px;margin:0 auto 32px;">Envia un WhatsApp para confirmar que completaste todo y arrancar.</p>
+        <a href="https://wa.link/jvao5e" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1a9e4a,#128f3e);color:#fff;font-size:16px;font-weight:700;padding:18px 48px;border-radius:100px;text-decoration:none;border:1px solid rgba(37,211,102,0.4);box-shadow:0 8px 40px rgba(37,211,102,0.4);">💬 Confirmar por WhatsApp</a>
+        <div style="margin-top:24px;">
+          <button class="cc-btn cc-btn-ghost" onclick="completeOnbStep(5)" style="padding:12px 32px;font-size:14px;">Ya envie el mensaje →</button>
+        </div>
+      </div>`;
+  } else {
+    // DONE
+    content.innerHTML = `
+      <div style="text-align:center;">
+        <div style="font-size:64px;margin-bottom:16px;">🎉</div>
+        <h2 style="font-family:var(--font-head);font-size:28px;font-weight:800;color:#fff;margin-bottom:12px;">Onboarding completado!</h2>
+        <p style="color:var(--text3);font-size:15px;margin-bottom:24px;">Tu cuenta esta en revision. Te avisaremos cuando este aprobada.</p>
+      </div>`;
+    setTimeout(() => showMainView('pending'), 2500);
+  }
+}
+
+function toggleCurrency() {
+  const c = document.getElementById('ct-currency').value;
+  document.getElementById('ct-usd-field').style.display = c==='USD'?'':'none';
+  document.getElementById('ct-ars-field').style.display = c==='ARS'?'':'none';
+  if (c==='USD') document.getElementById('ct-amount-usd').required = true, document.getElementById('ct-amount-ars').required = false;
+  else document.getElementById('ct-amount-usd').required = false, document.getElementById('ct-amount-ars').required = true;
+}
+
+async function submitContract(e) {
+  e.preventDefault();
+  const currency = document.getElementById('ct-currency').value;
+  const amount = currency==='USD'
+    ? parseFloat(document.getElementById('ct-amount-usd').value)
+    : parseFloat(document.getElementById('ct-amount-ars').value);
+  if (!amount || amount <= 0) { alert('Ingresa el monto pagado'); return; }
+  const res = await fetch('/api/client/onboarding/contract', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    full_name: document.getElementById('ct-name').value,
+    address: document.getElementById('ct-address').value,
+    document_id: document.getElementById('ct-doc').value,
+    payment_date: document.getElementById('ct-date').value,
+    currency, amount
+  })});
+  if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+  loadOnboarding();
+}
+
+async function uploadProof(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append('proof', file);
+  const res = await fetch('/api/client/onboarding/proof', { method:'POST', body: form });
+  if (!res.ok) { alert('Error subiendo archivo'); return; }
+  input.value = '';
+  loadProofList();
+}
+
+async function loadProofList() {
+  const proofs = await fetch('/api/client/onboarding/proofs').then(r=>r.json());
+  const div = document.getElementById('proofList');
+  if (!div) return;
+  if (!proofs.length) { div.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;margin-bottom:8px;">Todavia no subiste ningun comprobante.</p>'; return; }
+  div.innerHTML = proofs.map(p => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.15);border-radius:12px;margin-bottom:8px;">
+      <span style="color:#25d366;font-size:18px;">✓</span>
+      <span style="flex:1;font-size:14px;color:#fff;font-weight:500;">${esc(p.original_name)}</span>
+      <a href="${esc(p.file_url)}" target="_blank" style="color:#4ab8fe;font-size:12px;">Ver</a>
+    </div>
+  `).join('') + `<button class="cc-btn cc-btn-primary" onclick="completeOnbStep(${user.access_type==='reserve'?2:3})" style="width:100%;padding:16px;font-size:15px;border-radius:14px;margin-top:16px;">${user.access_type==='reserve'?'Finalizar →':'Continuar →'}</button>`;
+}
+
+async function completeOnbStep(step) {
+  await fetch('/api/client/onboarding/step', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({step}) });
+  loadOnboarding();
+}
+
+function finishOnboarding() {
+  showMainView('pending');
+}
+
+// ═══ CHECK-IN SEMANAL ═══
+async function loadCheckin() {
+  const current = await fetch('/api/client/checkins/current').then(r=>r.json());
+  const form = document.getElementById('checkinForm');
+
+  if (current) {
+    form.innerHTML = `
+      <div style="background:rgba(74,184,254,0.03);border:1px solid rgba(74,184,254,0.12);border-radius:14px;padding:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#fff;">${current.calls||0}</div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Llamadas</div></div>
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#25d366;">${current.clients_closed||0}</div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Clientes</div></div>
+          <div style="text-align:center;"><div style="font-size:24px;font-weight:800;color:#4ab8fe;">$${parseFloat(current.revenue||0).toLocaleString()}</div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Facturación</div></div>
+        </div>
+        ${current.notes?'<p style="font-size:13px;color:var(--text2);border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">'+esc(current.notes)+'</p>':''}
+        <button class="cc-btn cc-btn-ghost" onclick="showCheckinForm()" style="width:100%;margin-top:10px;">Editar check-in</button>
+      </div>`;
+  } else {
+    showCheckinForm();
+  }
+
+  // Load history
+  const history = await fetch('/api/client/checkins').then(r=>r.json());
+  const hDiv = document.getElementById('checkinHistory');
+  if (history.length <= 1) { hDiv.innerHTML = '<p style="color:var(--text3);font-size:13px;">Todavía no tenés check-ins anteriores.</p>'; return; }
+  hDiv.innerHTML = history.slice(1).map(c => `
+    <div style="display:flex;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;">
+      <span style="color:var(--text3);width:90px;">${new Date(c.week_start).toLocaleDateString('es-AR')}</span>
+      <span style="color:#fff;">${c.calls} llamadas</span>
+      <span style="color:#25d366;">${c.clients_closed} clientes</span>
+      <span style="color:#4ab8fe;">$${parseFloat(c.revenue||0).toLocaleString()}</span>
+    </div>
+  `).join('');
+}
+
+function showCheckinForm() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('checkinForm').innerHTML = `
+    <form onsubmit="submitCheckin(event)" style="background:rgba(74,184,254,0.03);border:1px solid rgba(74,184,254,0.12);border-radius:14px;padding:20px;">
+      <div style="margin-bottom:14px;"><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Semana del</label><input class="modal-input" type="date" id="ci-date" value="${today}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Llamadas</label><input class="modal-input" type="number" id="ci-calls" value="0" min="0"></div>
+        <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Clientes cerrados</label><input class="modal-input" type="number" id="ci-clients" value="0" min="0"></div>
+        <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Facturación ($)</label><input class="modal-input" type="number" id="ci-revenue" value="0" min="0" step="0.01"></div>
+      </div>
+      <div style="margin-bottom:14px;"><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Notas</label><textarea class="modal-textarea" id="ci-notes" placeholder="¿Cómo fue tu semana?" style="min-height:60px;"></textarea></div>
+      <button type="submit" class="cc-btn cc-btn-primary" style="width:100%;padding:12px;">Enviar Check-in</button>
+    </form>`;
+}
+
+async function submitCheckin(e) {
+  e.preventDefault();
+  await fetch('/api/client/checkins', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    calls: parseInt(document.getElementById('ci-calls').value)||0,
+    clients_closed: parseInt(document.getElementById('ci-clients').value)||0,
+    revenue: parseFloat(document.getElementById('ci-revenue').value)||0,
+    notes: document.getElementById('ci-notes').value,
+    week_date: document.getElementById('ci-date').value
+  })});
+  loadCheckin();
+  loadGoals();
+}
+
+// ═══ METAS DEL MES ═══
+async function loadGoals() {
+  const data = await fetch('/api/client/goals/current').then(r=>r.json());
+  const div = document.getElementById('goalProgress');
+  if (!data.goal) {
+    div.innerHTML = `<div style="grid-column:span 2;text-align:center;padding:20px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;">
+      <p style="color:var(--text3);margin-bottom:12px;">No tenés meta para este mes</p>
+      <button class="cc-btn cc-btn-primary" onclick="openGoalModal()">Crear Meta</button>
+    </div>`;
+    return;
+  }
+  const g = data.goal, p = data.progress;
+  const revPct = g.revenue_goal > 0 ? Math.min(100, Math.round(p.total_revenue / g.revenue_goal * 100)) : 0;
+  const cliPct = g.clients_goal > 0 ? Math.min(100, Math.round(p.total_clients / g.clients_goal * 100)) : 0;
+
+  div.innerHTML = `
+    <div style="background:rgba(74,184,254,0.03);border:1px solid rgba(74,184,254,0.12);border-radius:14px;padding:20px;">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Facturación</div>
+      <div style="font-size:22px;font-weight:800;color:#4ab8fe;margin-bottom:4px;">$${parseFloat(p.total_revenue).toLocaleString()} <span style="font-size:14px;color:var(--text3);font-weight:400;">/ $${parseFloat(g.revenue_goal).toLocaleString()}</span></div>
+      <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${revPct}%;background:linear-gradient(90deg,#4ab8fe,#a8d8ff);border-radius:3px;"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">${revPct}%</div>
+    </div>
+    <div style="background:rgba(37,211,102,0.03);border:1px solid rgba(37,211,102,0.12);border-radius:14px;padding:20px;">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Clientes</div>
+      <div style="font-size:22px;font-weight:800;color:#25d366;margin-bottom:4px;">${p.total_clients} <span style="font-size:14px;color:var(--text3);font-weight:400;">/ ${g.clients_goal}</span></div>
+      <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${cliPct}%;background:linear-gradient(90deg,#25d366,#6ee7b7);border-radius:3px;"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">${cliPct}%</div>
+    </div>`;
+}
+
+function openGoalModal() {
+  openModal(`
+    <div class="modal-title">Meta del Mes</div>
+    <form onsubmit="saveGoal(event)">
+      <div class="modal-field"><div class="modal-label">Meta de facturación ($)</div><input class="modal-input" type="number" id="g-revenue" value="0" min="0" step="0.01"></div>
+      <div class="modal-field"><div class="modal-label">Meta de clientes</div><input class="modal-input" type="number" id="g-clients" value="0" min="0"></div>
+      <div class="modal-field"><div class="modal-label">Notas</div><textarea class="modal-textarea" id="g-notes" placeholder="Ej: Objetivo 5 clientes a $2000"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="modal-btn modal-btn-save">Guardar</button>
+      </div>
+    </form>
+  `);
+}
+
+async function saveGoal(e) {
+  e.preventDefault();
+  await fetch('/api/client/goals', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    revenue_goal: parseFloat(document.getElementById('g-revenue').value)||0,
+    clients_goal: parseInt(document.getElementById('g-clients').value)||0,
+    notes: document.getElementById('g-notes').value
+  })});
+  closeModal(); loadGoals();
+}
+
+// ═══ DIARIO DE ACCIÓN ═══
+async function loadDiario() {
+  const logs = await fetch('/api/client/action-logs').then(r=>r.json());
+  const div = document.getElementById('diarioTimeline');
+  if (!logs.length) { div.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px;">Tu diario está vacío. Empezá anotando qué hiciste hoy.</p>'; return; }
+
+  let lastDate = '';
+  div.innerHTML = logs.map(l => {
+    const d = new Date(l.date).toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+    const header = d !== lastDate ? `<div style="font-size:12px;font-weight:700;color:#4ab8fe;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-top:${lastDate?'16px':'0'};${lastDate?'border-top:1px solid rgba(255,255,255,0.04);':''}">${d}</div>` : '';
+    lastDate = d;
+    const time = new Date(l.created_at).toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+    return header + `<div style="display:flex;gap:12px;padding:10px 0;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#4ab8fe;margin-top:6px;flex-shrink:0;"></div>
+      <div style="flex:1;"><p style="color:#fff;font-size:14px;line-height:1.6;">${linkifyText(esc(l.content))}</p><span style="font-size:11px;color:var(--text3);">${time}</span></div>
+    </div>`;
+  }).join('');
+}
+
+async function submitAction() {
+  const input = document.getElementById('diarioInput');
+  const content = input.value.trim();
+  if (!content) return;
+  await fetch('/api/client/action-logs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content }) });
+  input.value = '';
+  loadDiario();
+}
+
+// ═══ DISCORD OAUTH (server-side protected) ═══
+async function openDiscordLink() {
+  try {
+    const r = await fetch('/api/client/discord-auth');
+    const d = await r.json();
+    if (!r.ok) { alert(d.error || 'No tenes acceso'); return; }
+    if (d.already_connected) { alert('Ya estas conectado a Discord!'); return; }
+    if (d.url) window.open(d.url, 'discord', 'width=600,height=700');
+  } catch { alert('Error al conectar con Discord'); }
+}
+// Check if returning from Discord OAuth
+if (new URLSearchParams(window.location.search).get('discord') === 'success') {
+  alert('Discord conectado! Ya tenes acceso al servidor.');
+  window.history.replaceState({}, '', '/dashboard.html');
+} else if (new URLSearchParams(window.location.search).get('discord') === 'error') {
+  alert('Hubo un error al conectar Discord. Intenta de nuevo.');
+  window.history.replaceState({}, '', '/dashboard.html');
+}
+
+// ═══ DISCORD VIDEO TIMER ═══
+let discordTimerInterval = null;
+let discordUnlocked = false;
+function startDiscordTimer() {
+  if (discordUnlocked) return;
+  // Simulate video watching progress (unlock after ~60 seconds for testing, adjust as needed)
+  const UNLOCK_SECONDS = 224; // 3:44 — video length
+  let elapsed = 0;
+  clearInterval(discordTimerInterval);
+  document.getElementById('discordLocked').style.display = '';
+  document.getElementById('discordUnlocked').style.display = 'none';
+  document.getElementById('discordProgress').style.width = '0%';
+
+  discordTimerInterval = setInterval(() => {
+    elapsed++;
+    const pct = Math.min(100, Math.round((elapsed / UNLOCK_SECONDS) * 100));
+    document.getElementById('discordProgress').style.width = pct + '%';
+    document.getElementById('discordTimer').textContent = pct + '%';
+    if (elapsed >= UNLOCK_SECONDS) {
+      clearInterval(discordTimerInterval);
+      discordUnlocked = true;
+      document.getElementById('discordLocked').style.display = 'none';
+      document.getElementById('discordUnlocked').style.display = '';
+    }
+  }, 1000);
+}
+
+init();
+</script>
+</body>
+</html>

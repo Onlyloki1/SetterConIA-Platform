@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setter con IA — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .container:has(#tab-bots:not(.hidden)) { max-width:none; }
+  #tab-bots .card { overflow-x:auto; }
+  #tab-bots table { width:100%; font-size:13px; }
+  #tab-bots table td, #tab-bots table th { padding:12px 10px; white-space:nowrap; }
+  #botStats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  #botStats .card { padding:20px; }
+  #botStats .card div:first-child { font-size:32px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="container header-inner">
+    <div class="logo-area">
+      <img src="https://assets.cdn.filesafe.space/viKKPXD4WZGBeMjzT0tt/media/69b2ba63eba487f12ae6fc60.svg" alt="Logo">
+      <span class="logo-name">Admin Panel</span>
+    </div>
+    <div class="user-info">
+      <span>Hola, <span class="user-name" id="userName">Admin</span></span>
+      <a href="/dashboard.html" class="btn btn-sm" style="text-decoration:none;">Ver Plataforma</a>
+      <button class="btn btn-sm btn-ghost" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="container">
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-nav">
+      <button class="sidebar-link active" data-tab="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuarios
+      </button>
+      <button class="sidebar-link" data-tab="modules">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Módulos
+      </button>
+      <button class="sidebar-link" data-tab="lessons">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        Lecciones
+      </button>
+      <button class="sidebar-link" data-tab="resources">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Recursos
+      </button>
+      <button class="sidebar-link" data-tab="plans">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Planes
+      </button>
+      <button class="sidebar-link" data-tab="softwares">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Softwares
+      </button>
+      <button class="sidebar-link" data-tab="progress">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Progreso
+      </button>
+      <button class="sidebar-link" data-tab="calls">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Llamadas
+      </button>
+      <button class="sidebar-link" data-tab="approvals">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Aprobaciones
+      </button>
+      <div style="border-top:1px solid rgba(255,255,255,0.06);margin:12px 0;"></div>
+      <button class="sidebar-link" data-tab="bots">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+        Bots
+      </button>
+      <a href="http://104.248.187.30:3000/admin/login" target="_blank" rel="noopener" class="sidebar-link" style="text-decoration:none;color:inherit;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Auto Contestador
+      </a>
+      <a href="https://control.zaplink.net/index.php" target="_blank" rel="noopener" class="sidebar-link" style="text-decoration:none;color:inherit;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Whatsapp Bot
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TAB: USERS -->
+    <div id="tab-users" class="tab-content">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Usuarios</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Gestioná los accesos de tus clientes.</p>
+        </div>
+        <button class="btn" onclick="openModal('user')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Usuario
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Plan</th><th>Vence</th><th>Onb</th><th>Creado</th><th></th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MODULES -->
+    <div id="tab-modules" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Módulos</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Organizá el contenido en módulos temáticos.</p>
+        </div>
+        <button class="btn" onclick="openModal('module')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Módulo
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Orden</th><th>Icono</th><th>Título</th><th>Descripción</th><th></th></tr></thead>
+            <tbody id="modulesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LESSONS -->
+    <div id="tab-lessons" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Lecciones</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Agregá videos, PDFs y links a cada módulo.</p>
+        </div>
+        <button class="btn" onclick="openModal('lesson')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Lección
+        </button>
+      </div>
+      <div style="margin-bottom:16px;">
+        <select class="select" id="lessonModuleFilter" style="max-width:300px;" onchange="loadLessons()">
+          <option value="">Todos los módulos</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Orden</th><th>Título</th><th>Tipo</th><th>Módulo</th><th>URL</th><th></th></tr></thead>
+            <tbody id="lessonsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESOURCES -->
+    <div id="tab-resources" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Recursos</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Biblioteca de PDFs y links para tus clientes.</p>
+        </div>
+        <button class="btn" onclick="openModal('resource')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Recurso
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Título</th><th>Tipo</th><th>Descripción</th><th>URL</th><th></th></tr></thead>
+            <tbody id="resourcesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PLANS -->
+    <div id="tab-plans" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Planes</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Gestioná los planes y qué softwares incluye cada uno.</p>
+        </div>
+        <button class="btn" onclick="openModal('plan')">+ Nuevo Plan</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Duración</th><th>Descripción</th><th>Softwares</th><th></th></tr></thead>
+            <tbody id="plansTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SOFTWARES -->
+    <div id="tab-softwares" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Softwares</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Catálogo de herramientas disponibles.</p>
+        </div>
+        <button class="btn" onclick="openModal('software')">+ Nuevo Software</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Icono</th><th>Nombre</th><th>Descarga</th><th>Tutorial</th><th></th></tr></thead>
+            <tbody id="softwaresTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PROGRESS -->
+    <div id="tab-progress" class="tab-content hidden">
+      <h1 class="page-title">Progreso de Clientes</h1>
+      <p class="page-subtitle">Visualizá el avance de cada usuario en la plataforma.</p>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Progreso</th><th>Completadas</th></tr></thead>
+            <tbody id="progressTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CALLS -->
+    <div id="tab-calls" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Llamadas</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Trackea las reuniones del dia.</p>
+        </div>
+        <div class="flex gap-8">
+          <input type="date" class="input" id="callsDate" onchange="loadCalls()" style="max-width:180px;">
+          <button class="btn" id="calConnectBtn" onclick="connectCalendar()">📅 Conectar Calendar</button>
+        </div>
+      </div>
+      <!-- Stats -->
+      <div class="flex gap-8" style="margin-bottom:20px;" id="callStats"></div>
+      <!-- Events list -->
+      <div id="callsList"></div>
+    </div>
+
+    <!-- TAB: APPROVALS -->
+    <div id="tab-approvals" class="tab-content hidden">
+      <div style="margin-bottom:24px;">
+        <h1 class="page-title">Aprobaciones</h1>
+        <p class="page-subtitle" style="margin-bottom:0;">Clientes que completaron el onboarding y esperan tu aprobacion.</p>
+      </div>
+      <div id="approvalsContent"></div>
+    </div>
+
+    <!-- TAB: BOTS -->
+    <div id="tab-bots" class="tab-content hidden">
+      <div class="flex justify-between items-center" style="margin-bottom:24px;">
+        <div>
+          <h1 class="page-title">Gestión de Bots</h1>
+          <p class="page-subtitle" style="margin-bottom:0;">Administrá las cuentas de tus clientes en Firebase.</p>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn" id="botLoginBtn" onclick="botAdminLogin()" style="background:#f59e0b;">🔑 Login Firebase</button>
+          <button class="btn" onclick="openBotModal('quick')">⚡ Creación Rápida</button>
+          <button class="btn" onclick="openBotModal('create')">+ Nuevo Cliente</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex gap-8" style="margin-bottom:20px;" id="botStats">
+        <div class="card" style="flex:1;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:800;color:#fff;" id="statTotal">-</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.05em;">Total</div>
+        </div>
+        <div class="card" style="flex:1;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:800;color:#25D366;" id="statActive">-</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.05em;">Activos</div>
+        </div>
+        <div class="card" style="flex:1;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:800;color:#f59e0b;" id="statExpiring">-</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.05em;">Por vencer</div>
+        </div>
+        <div class="card" style="flex:1;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:800;color:#e74c3c;" id="statExpired">-</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.05em;">Expirados</div>
+        </div>
+      </div>
+
+      <!-- Search + actions -->
+      <div class="flex gap-8" style="margin-bottom:16px;">
+        <input class="input" id="botSearch" placeholder="Buscar por email, nombre o notas..." oninput="renderBotClients()" style="flex:1;">
+        <button class="btn btn-danger" onclick="cleanExpiredBots()">🧹 Limpiar Expirados</button>
+      </div>
+
+      <!-- Clients table -->
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Contraseña</th><th>Nombre</th><th>Msgs</th><th>Expira</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="botClientsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <button data-tab="users" class="active" onclick="switchTab('users')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Usuarios
+  </button>
+  <button data-tab="modules" onclick="switchTab('modules')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Módulos
+  </button>
+  <button data-tab="lessons" onclick="switchTab('lessons')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    Lecciones
+  </button>
+  <button data-tab="resources" onclick="switchTab('resources')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Recursos
+  </button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="/js/admin.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="/js/bots.js"></script>
+</body>
+</html>

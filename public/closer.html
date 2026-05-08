@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setter con IA — Registrar Cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:#07111f;color:#a8c8e8;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+body::before{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(20,80,160,0.35),transparent 70%);pointer-events:none;}
+.card{position:relative;width:100%;max-width:440px;margin:40px 20px;background:linear-gradient(140deg,#0c1d30,#091624);border:1px solid rgba(74,184,254,0.15);border-radius:24px;padding:40px;box-shadow:0 32px 80px rgba(0,0,0,0.5);}
+.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4ab8fe,#2196f3);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;margin:0 auto 24px;}
+h1{text-align:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;}
+.sub{text-align:center;font-size:13px;color:#7a93aa;margin-bottom:32px;}
+label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin-bottom:6px;}
+input{width:100%;padding:14px 18px;background:rgba(74,184,254,0.04);border:1px solid rgba(74,184,254,0.12);border-radius:12px;color:#fff;font-size:15px;font-family:'Poppins',sans-serif;outline:none;transition:border-color 0.25s;}
+input:focus{border-color:rgba(74,184,254,0.5);box-shadow:0 0 0 3px rgba(74,184,254,0.1);}
+input::placeholder{color:#4a6275;}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,#4ab8fe,#2196f3);color:#fff;font-size:15px;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-family:'Poppins',sans-serif;margin-top:20px;transition:opacity 0.2s;}
+.btn:hover{opacity:0.9;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+.result{margin-top:20px;padding:20px;border-radius:14px;display:none;}
+.result.success{display:block;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.25);}
+.result.error{display:block;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);}
+.result h3{font-size:15px;margin-bottom:8px;}
+.result p{font-size:13px;line-height:1.6;}
+.result .cred{font-family:monospace;font-size:14px;font-weight:600;color:#fff;background:rgba(255,255,255,0.05);padding:8px 14px;border-radius:8px;margin-top:8px;cursor:pointer;}
+.result .cred:hover{background:rgba(255,255,255,0.1);}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#25d366;color:#fff;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">SI</div>
+  <h1>Registrar Nuevo Cliente</h1>
+  <p class="sub">Ingresá el email del cliente para crear su cuenta</p>
+  <form id="closerForm" onsubmit="createClient(event)">
+    <label>Email del cliente</label>
+    <input type="email" id="clientEmail" required placeholder="cliente@email.com" autocomplete="off">
+    <label style="margin-top:16px;">Nombre</label>
+    <input type="text" id="clientName" placeholder="Nombre del cliente">
+    <label style="margin-top:16px;">Telefono</label>
+    <input type="tel" id="clientPhone" required placeholder="+54 9 11 1234-5678" autocomplete="off">
+    <label style="margin-top:16px;">Tipo de acceso</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+      <label id="opt-full" style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:rgba(74,184,254,0.08);border:2px solid rgba(74,184,254,0.3);border-radius:12px;cursor:pointer;transition:all 0.2s;" onclick="selectAccess('full')">
+        <input type="radio" name="accessType" value="full" checked style="width:18px;height:18px;">
+        <div><div style="font-weight:700;color:#fff;font-size:14px;">Completo</div><div style="font-size:11px;color:#7a93aa;">Contrato + comprobantes</div></div>
+      </label>
+      <label id="opt-reserve" style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:rgba(255,255,255,0.02);border:2px solid rgba(255,255,255,0.06);border-radius:12px;cursor:pointer;transition:all 0.2s;" onclick="selectAccess('reserve')">
+        <input type="radio" name="accessType" value="reserve" style="width:18px;height:18px;">
+        <div><div style="font-weight:700;color:#fff;font-size:14px;">Reserva</div><div style="font-size:11px;color:#7a93aa;">Solo video, acceso limitado</div></div>
+      </label>
+    </div>
+    <label style="margin-top:16px;">Comprobantes de pago</label>
+    <div id="closerProofs" style="margin-top:6px;"></div>
+    <label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;background:rgba(74,184,254,0.03);border:2px dashed rgba(74,184,254,0.2);border-radius:12px;cursor:pointer;margin-top:6px;" onmouseover="this.style.borderColor='rgba(74,184,254,0.5)'" onmouseout="this.style.borderColor='rgba(74,184,254,0.2)'">
+      <span style="font-size:24px;">📎</span>
+      <span style="color:#4ab8fe;font-weight:600;font-size:13px;">Subir comprobante</span>
+      <span style="color:#4a6275;font-size:11px;">JPG, PNG o PDF</span>
+      <input type="file" accept="image/*,.pdf" onchange="addCloserProof(this)" style="display:none;" multiple>
+    </label>
+    <label style="margin-top:16px;">Notas para el admin</label>
+    <textarea id="clientNotes" placeholder="Ej: Pago 100 USD de sena, debe 900 USD. Cierra en 2 semanas..." style="width:100%;padding:14px 18px;background:rgba(74,184,254,0.04);border:1px solid rgba(74,184,254,0.12);border-radius:12px;color:#fff;font-size:14px;font-family:'Poppins',sans-serif;outline:none;min-height:80px;resize:vertical;margin-top:6px;"></textarea>
+    <button type="submit" class="btn" id="submitBtn">Crear Cuenta</button>
+  </form>
+  <div class="result" id="result"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+function selectAccess(type) {
+  document.getElementById('opt-full').style.borderColor = type==='full'?'rgba(74,184,254,0.3)':'rgba(255,255,255,0.06)';
+  document.getElementById('opt-full').style.background = type==='full'?'rgba(74,184,254,0.08)':'rgba(255,255,255,0.02)';
+  document.getElementById('opt-reserve').style.borderColor = type==='reserve'?'rgba(37,211,102,0.3)':'rgba(255,255,255,0.06)';
+  document.getElementById('opt-reserve').style.background = type==='reserve'?'rgba(37,211,102,0.08)':'rgba(255,255,255,0.02)';
+}
+
+// Proof files management
+let closerProofFiles = [];
+function addCloserProof(input) {
+  for (const f of input.files) closerProofFiles.push(f);
+  input.value = '';
+  renderCloserProofs();
+}
+function removeCloserProof(i) {
+  closerProofFiles.splice(i, 1);
+  renderCloserProofs();
+}
+function renderCloserProofs() {
+  const div = document.getElementById('closerProofs');
+  div.innerHTML = closerProofFiles.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.15);border-radius:10px;margin-bottom:6px;">
+      <span style="color:#25d366;">✓</span>
+      <span style="flex:1;font-size:13px;color:#fff;">${f.name}</span>
+      <button type="button" onclick="removeCloserProof(${i})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+  `).join('');
+}
+
+async function createClient(e) {
+  e.preventDefault();
+  const email = document.getElementById('clientEmail').value.trim();
+  const name = document.getElementById('clientName').value.trim();
+  const phone = document.getElementById('clientPhone').value.trim();
+  const accessType = document.querySelector('input[name="accessType"]:checked').value;
+  const notes = document.getElementById('clientNotes')?.value || '';
+
+  if (!phone) { alert('El telefono es obligatorio'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Creando...';
+  try {
+    // 1. Create user
+    const res = await fetch('/api/closer/create', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, name: name || email.split('@')[0], phone, access_type: accessType, notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // 2. Upload proofs if any
+    if (closerProofFiles.length > 0) {
+      for (const file of closerProofFiles) {
+        const form = new FormData();
+        form.append('proof', file);
+        form.append('user_id', data.id);
+        await fetch('/api/closer/upload-proof', { method: 'POST', body: form });
+      }
+    }
+
+    const r = document.getElementById('result');
+    r.className = 'result success';
+    r.innerHTML = `
+      <h3 style="color:#25d366;">✅ Cliente creado</h3>
+      <p style="color:#a8c8e8;">Las credenciales del cliente son:</p>
+      <div class="cred" onclick="copy(this)" title="Click para copiar">📧 ${data.email}</div>
+      <div class="cred" onclick="copy(this)" title="Click para copiar">🔑 ${data.password}</div>
+      ${closerProofFiles.length ? '<p style="color:#25d366;font-size:12px;margin-top:8px;">✓ ' + closerProofFiles.length + ' comprobante(s) subido(s)</p>' : ''}
+      <p style="color:#7a93aa;font-size:11px;margin-top:12px;">Click en las credenciales para copiar</p>
+    `;
+    // Reset form
+    document.getElementById('clientEmail').value = '';
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientNotes').value = '';
+    closerProofFiles = [];
+    renderCloserProofs();
+  } catch (err) {
+    const r = document.getElementById('result');
+    r.className = 'result error';
+    r.innerHTML = `<h3 style="color:#e74c3c;">❌ Error</h3><p style="color:#e74c3c;">${err.message}</p>`;
+  }
+  btn.disabled = false; btn.textContent = 'Crear Cuenta';
+}
+
+function copy(el) {
+  const text = el.textContent.slice(2).trim();
+  navigator.clipboard.writeText(text);
+  const t = document.getElementById('toast');
+  t.textContent = '✓ Copiado';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+</script>
+</body>
+</html>
