@@ -155,12 +155,6 @@ async function initDB() {
       EXCEPTION WHEN duplicate_column THEN NULL;
       END $$;
 
-      -- Add links JSONB to user_credentials for per-user dynamic links
-      DO $$ BEGIN
-        ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS links JSONB DEFAULT '[]';
-      EXCEPTION WHEN duplicate_column THEN NULL;
-      END $$;
-
       -- Which softwares each plan includes
       CREATE TABLE IF NOT EXISTS plan_softwares (
         plan_id INTEGER REFERENCES plans(id) ON DELETE CASCADE,
@@ -179,6 +173,12 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(user_id, software_id)
       );
+
+      -- Add links JSONB to user_credentials for per-user dynamic links
+      DO $$ BEGIN
+        ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS links JSONB DEFAULT '[]';
+      EXCEPTION WHEN duplicate_column THEN NULL;
+      END $$;
 
       -- Bot clients (managed from admin, validated by bot extension)
       CREATE TABLE IF NOT EXISTS bot_clients (
