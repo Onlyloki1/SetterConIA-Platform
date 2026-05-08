@@ -4,3 +4,5 @@ uploads/
 *.log
 .claude/
 .DS_Store
+_railway-*
+*.png
