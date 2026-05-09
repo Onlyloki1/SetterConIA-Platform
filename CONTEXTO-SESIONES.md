@@ -69,6 +69,36 @@ Fork de la plataforma B2C Smart Acquisition para vender un curso aparte llamado 
 
 ---
 
+## Sesión 2026-05-09 — Modelo público con paywall blando
+
+**Concepto del user**: cambiar de plataforma cerrada a **classroom público**. Cualquiera entra, ve el curso, las lecciones gratis se reproducen normal y las bloqueadas tienen overlay 🔒 + CTA a un link configurable (WhatsApp por default). Sin checkout — el cobro lo resuelve el user manual fuera de la plataforma. Cuando alguien paga, se le crea cuenta desde el admin existente y se loguea en `/login.html` para ver todo desbloqueado.
+
+**Cambios** (commit `51fc2f8`):
+
+- DB: `lessons.is_locked BOOLEAN`, tabla `app_settings (key, value)` con `checkout_url` default
+- `routes/public.js` (NUEVO sin auth): `GET /api/public/curso` (lecciones bloqueadas NO devuelven `content_url`, prevención bypass) + `GET /api/public/checkout-url`
+- `routes/admin.js`: GET `/settings`, PUT `/settings/:key`, lessons aceptan `is_locked`
+- `public/curso.html` (NUEVO): standalone público con hero, módulos en grid, overlay blur en lecciones bloqueadas, modal player auto-detect Loom/YouTube/Vimeo, CTA bottom
+- `public/admin.html`: nuevo tab "Configuración" en sidebar (input URL checkout)
+- `public/js/admin.js`: checkbox "🔒 Bloqueado" en form lección + badge en tabla + funciones settings
+- `server.js`: `/` redirige a `/curso.html` (antes `/login.html`)
+
+**URLs**:
+- Público: https://setterconia-platform-production.up.railway.app/
+- Admin: https://setterconia-platform-production.up.railway.app/admin.html
+- Login pago: https://setterconia-platform-production.up.railway.app/login.html
+
+**Flujo de venta**:
+1. Visitor → `/` → ve curso
+2. Click lección bloqueada → abre WhatsApp (link configurable desde admin)
+3. User cobra como quiere (transferencia, MP link a mano, etc.)
+4. User va al admin → Usuarios → "Nuevo Usuario" → sistema manda creds por Resend
+5. Cliente loguea en `/login.html` → ve `/dashboard.html` desbloqueado
+
+**Bypass prevention**: el endpoint público `/api/public/curso` NO devuelve `content_url` para lecciones con `is_locked=true`. Aunque alguien abra DevTools no puede sacar el video.
+
+---
+
 ## Pendientes (post-deploy)
 
 - [ ] Crear rol "Setter con IA" en Discord PRIME HUB 2 → setear `DISCORD_ROLE_ID`
