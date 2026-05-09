@@ -69,6 +69,43 @@ Fork de la plataforma B2C Smart Acquisition para vender un curso aparte llamado 
 
 ---
 
+## Sesión 2026-05-09 (parte 3) — Dashboard.html en modo público
+
+**Decisión del user**: descartar el `/curso.html` standalone que armé y reusar la UI completa del `/dashboard.html` (mismo topnav con tabs Classroom/Recursos/Check-in/Diario/Clases en vivo, mismo grid de course-cards) en modo público. El visitor entra y ve **exactamente** la misma interfaz que ve el admin/cliente pago, pero con bloqueos donde corresponda.
+
+**Cambios** (commit `25105c4`):
+
+- `public/dashboard.html` modificado para soportar 2 modos en una misma vista:
+  - **Modo logueado** (existente): `fetch('/api/auth/me')` OK → `loadClassroom` desde `/api/client/modules`, todo el flow normal
+  - **Modo público** (NUEVO): `fetch('/api/auth/me')` falla → setea `isPublic = true`, body class `is-public`, carga `/api/public/curso` y `/api/public/settings` (para checkout_url), render con bloqueos
+- CSS: nuevas clases `.public-only` (visible solo en modo público) y `.auth-only` (oculto en modo público con `!important`)
+- Topnav modo público:
+  - Esconde `userName`, `userAvatar`, "Salir", botón "Admin" (todos `auth-only`)
+  - Muestra botón "Acceder al curso" (gradient naranja, link a checkout) + link "Iniciar sesión"
+- `loadClassroom`:
+  - Si `isPublic` → llama `renderPublicClassroom()` que dibuja course-cards con la misma estética; módulos cuyas TODAS las lecciones están bloqueadas se ven bloqueados (blur + 🔒 + "DESBLOQUEAR"); módulos mixtos muestran badge "X/Y FREE" (cantidad gratis); módulos 100% libres muestran badge "GRATIS"
+  - Click en módulo bloqueado → `publicCheckoutClick()` (abre checkout URL)
+  - Click en módulo no bloqueado → `openCourse(id)` (igual que normal)
+- `openCourse`:
+  - Si `isPublic` → usa `mod._publicLessons` (que ya vino del endpoint público), no fetch a `/api/client/modules/:id/lessons`
+- `selectLesson`:
+  - Si `isPublic && lesson.is_locked` → render paywall card grande con 🔒 + "Lección bloqueada" + botón "Accedé al curso completo →" en lugar del video
+- `showMainView`:
+  - Si `isPublic && v != 'classroom' && v != 'course'` → llama `publicTabBlocked()` que muestra confirm: "Para acceder necesitás el curso. Cancel=login, OK=checkout"
+- `intro.html` botón INGRESAR ahora va a `/dashboard.html` (en vez de `/curso.html`)
+- `curso.html` queda en el repo pero ya no se referencia (legacy, se puede borrar después)
+
+**Verificado live**: visitor sin login en `/dashboard.html` ve exactamente la UI del dashboard pero sin admin/avatar/salir, con "Acceder al curso" + "Iniciar sesión" arriba, tabs gateados y módulos/lecciones bloqueadas según el `is_locked` que el admin marque.
+
+**Flow final del visitor público**:
+1. `/` → redirect `/intro.html` (VSL gate con video + countdown 2 min, botón siempre abierto en esta versión)
+2. Click INGRESAR → `/dashboard.html` cargando en modo público
+3. Ve classroom con módulos. Lecciones bloqueadas muestran 🔒 → click abre WhatsApp (default) o el link configurable
+4. Tabs no-classroom → confirm dialog redirige a checkout o login
+5. Si paga, vos creás user en admin → email con creds → loguea en `/login.html` → `/dashboard.html` ahora en modo logueado (todo desbloqueado)
+
+---
+
 ## Sesión 2026-05-09 (parte 2) — VSL gate (intro video obligatorio antes del classroom)
 
 **Idea del user**: cuando alguien entra a la URL raíz, ANTES de ver el classroom le muestra un video sí o sí. Abajo del video hay un countdown "El acceso se desbloquea en 2:00..." y un botón "INGRESAR". Cuando termina el countdown el botón se resalta (verde, pulsando) — pero **en esta versión el botón está siempre clickable** (mientras el user testea/configura). Click → lleva al `/curso.html` que ya existía.
