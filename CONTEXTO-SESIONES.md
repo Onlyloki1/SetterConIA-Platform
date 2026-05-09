@@ -69,6 +69,32 @@ Fork de la plataforma B2C Smart Acquisition para vender un curso aparte llamado 
 
 ---
 
+## Sesión 2026-05-09 (parte 4) — Bloqueo a nivel módulo entero
+
+**Pedido del user**: en el modal de Nuevo/Editar Módulo (el del dashboard, NO el de admin.html), agregar un checkbox al lado del de "🎁 Bonus" para marcar el módulo COMPLETO como bloqueado. Cuando el visitor lo ve en modo público, debe aparecer con candado y el mensaje "Curso bloqueado, se desbloquea al abonar".
+
+**Cambios** (commit `4f80787`):
+
+- DB: nueva columna `modules.is_locked BOOLEAN DEFAULT FALSE`
+- `routes/admin.js`: POST/PUT `/modules` aceptan `is_locked` en body
+- `routes/public.js`: SELECT modules incluye `is_locked`. Lógica nueva: si `module.is_locked=true`, las lecciones de ese módulo se devuelven con `is_locked=true` forzado y SIN `content_url` (cascade lock — previene bypass de bajar lessons individuales del módulo bloqueado).
+- `public/dashboard.html` modal openModuleModal: nuevo checkbox `m-locked` debajo del de bonus, con label naranja "🔒 Bloqueado (premium)" + texto explicativo
+- `saveModule`: incluye `is_locked` en el body del request
+- `renderPublicClassroom`: nuevo case ANTES de `_allLocked`. Si `module.is_locked === true`:
+  - Cover blur + brightness 35%
+  - Overlay centrado: 🔒 + "Curso bloqueado" + "Se desbloquea al abonar" + chip naranja "DESBLOQUEAR →"
+  - Click → `publicCheckoutClick()`
+  - El módulo NO se puede abrir (no se permite `openCourse`)
+
+**Granularidad de bloqueo (3 niveles)**:
+1. **Lección bloqueada** (checkbox en form lesson): módulo se ve, se puede abrir, lección específica muestra paywall card
+2. **Módulo entero bloqueado por _allLocked** (todas las lecciones marcadas individualmente): card bloqueada con "DESBLOQUEAR" simple
+3. **Módulo entero bloqueado por toggle is_locked** (NUEVO, lo más rápido para el user): card bloqueada con texto custom "Curso bloqueado / Se desbloquea al abonar"
+
+**UX para el user (admin)**: para bloquear un módulo entero, marca el toggle 🔒 al editarlo en el dashboard. Más rápido que ir lección por lección.
+
+---
+
 ## Sesión 2026-05-09 (parte 3) — Dashboard.html en modo público
 
 **Decisión del user**: descartar el `/curso.html` standalone que armé y reusar la UI completa del `/dashboard.html` (mismo topnav con tabs Classroom/Recursos/Check-in/Diario/Clases en vivo, mismo grid de course-cards) en modo público. El visitor entra y ve **exactamente** la misma interfaz que ve el admin/cliente pago, pero con bloqueos donde corresponda.
