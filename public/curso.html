@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setter con IA — Curso</title>
+<meta name="description" content="Aprendé a ser Setter con IA. Mirá el módulo 1 gratis.">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #07111f;
+  --bg2: rgba(74,184,254,0.03);
+  --bg3: rgba(74,184,254,0.06);
+  --bg4: rgba(74,184,254,0.08);
+  --border: rgba(74,184,254,0.12);
+  --text: #ffffff;
+  --text2: #a8c8e8;
+  --text3: #7a93aa;
+  --accent: #4ab8fe;
+  --accent-light: #a8d8ff;
+  --green: #25d366;
+  --orange: #ff9d3a;
+  --font: 'Poppins', system-ui, sans-serif;
+}
+html, body { min-height:100vh; background:var(--bg); color:var(--text2); font-family:var(--font); -webkit-font-smoothing:antialiased; }
+body {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(20,80,160,0.35), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(74,184,254,0.08), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(74,184,254,0.05), transparent 50%);
+  background-attachment:fixed;
+}
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:3px; }
+h1,h2,h3 { color:var(--text); }
+a { color:inherit; text-decoration:none; }
+
+/* TOP NAV */
+.topnav {
+  height:60px; background:rgba(7,17,31,0.85); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(74,184,254,0.08);
+  display:flex; align-items:center; padding:0 28px; position:sticky; top:0; z-index:100;
+}
+.topnav-logo { display:flex; align-items:center; gap:10px; }
+.topnav-logo .logo-badge {
+  width:32px; height:32px; border-radius:8px;
+  background:linear-gradient(135deg,#4ab8fe,#2196f3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:800; color:#fff;
+}
+.topnav-logo span { font-size:15px; font-weight:600; letter-spacing:-0.3px; color:var(--text); }
+.topnav-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+.btn-login {
+  font-size:12px; color:var(--text3); padding:7px 14px;
+  border:1px solid rgba(255,255,255,0.08); border-radius:8px;
+  transition:all 0.2s;
+}
+.btn-login:hover { color:var(--text); border-color:rgba(74,184,254,0.3); background:rgba(74,184,254,0.05); }
+
+/* HERO */
+.hero { max-width:980px; margin:0 auto; padding:60px 28px 40px; text-align:center; }
+.hero-badge {
+  display:inline-block; padding:6px 14px; border-radius:20px;
+  background:rgba(255,157,58,0.1); border:1px solid rgba(255,157,58,0.25);
+  font-size:11px; font-weight:700; color:var(--orange); letter-spacing:1px; text-transform:uppercase;
+  margin-bottom:18px;
+}
+.hero h1 {
+  font-size:clamp(28px, 4vw, 44px); font-weight:800; line-height:1.15; margin-bottom:14px;
+  background:linear-gradient(180deg, #fff 50%, #4ab8fe); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.hero p { font-size:15px; color:var(--text3); max-width:600px; margin:0 auto; line-height:1.55; }
+
+/* MODULES CONTAINER */
+.container { max-width:1180px; margin:0 auto; padding:30px 28px 80px; }
+.module {
+  background:linear-gradient(140deg,#0c1d30,#091624);
+  border:1px solid var(--border); border-radius:20px;
+  padding:32px; margin-bottom:24px;
+}
+.module-head { display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+.module-icon {
+  width:46px; height:46px; border-radius:12px;
+  background:rgba(74,184,254,0.1); border:1px solid rgba(74,184,254,0.2);
+  display:flex; align-items:center; justify-content:center; font-size:22px;
+  flex-shrink:0;
+}
+.module-meta h2 { font-size:20px; font-weight:700; line-height:1.2; }
+.module-meta p { font-size:13px; color:var(--text3); margin-top:3px; }
+.module-tag {
+  margin-left:auto; font-size:10px; font-weight:700; letter-spacing:1px;
+  padding:5px 10px; border-radius:6px; text-transform:uppercase;
+  background:rgba(37,211,102,0.1); color:var(--green); border:1px solid rgba(37,211,102,0.2);
+}
+.module-tag.locked { background:rgba(255,157,58,0.1); color:var(--orange); border-color:rgba(255,157,58,0.2); }
+
+/* LESSONS GRID */
+.lessons {
+  display:grid; gap:14px;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+}
+.lesson {
+  position:relative; cursor:pointer;
+  background:var(--bg3); border:1px solid var(--border); border-radius:14px;
+  overflow:hidden; transition:all 0.25s;
+}
+.lesson:not(.locked):hover { border-color:rgba(74,184,254,0.35); transform:translateY(-2px); }
+.lesson-thumb {
+  width:100%; aspect-ratio:16/10;
+  background:linear-gradient(135deg, rgba(74,184,254,0.15), rgba(33,150,243,0.05));
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; position:relative;
+}
+.lesson-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.lesson-thumb::after {
+  content:'▶'; position:absolute; width:42px; height:42px; border-radius:50%;
+  background:rgba(0,0,0,0.55); color:#fff; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.2s;
+}
+.lesson:not(.locked):hover .lesson-thumb::after { opacity:1; }
+.lesson-body { padding:14px; }
+.lesson-title { font-size:13px; font-weight:600; color:var(--text); line-height:1.35; }
+.lesson-meta { font-size:11px; color:var(--text3); margin-top:6px; display:flex; gap:8px; }
+
+/* LOCKED OVERLAY */
+.lesson.locked { cursor:pointer; }
+.lesson.locked .lesson-thumb { filter:blur(6px) saturate(0.6); }
+.lesson.locked .lesson-body { filter:blur(2px) saturate(0.6); }
+.lesson.locked::before {
+  content:''; position:absolute; inset:0;
+  background:rgba(7,17,31,0.45);
+  z-index:1; border-radius:14px;
+}
+.lesson-lock {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:10px; padding:16px;
+  z-index:2; text-align:center;
+}
+.lesson-lock-icon {
+  width:48px; height:48px; border-radius:14px;
+  background:linear-gradient(135deg, var(--orange), #ff7e3a);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; box-shadow:0 8px 24px rgba(255,157,58,0.35);
+}
+.lesson-lock-cta {
+  font-size:12px; font-weight:700; color:#fff;
+  padding:9px 16px; border-radius:10px;
+  background:linear-gradient(135deg, var(--orange), #ff7e3a);
+  box-shadow:0 4px 14px rgba(255,157,58,0.35);
+  transition:transform 0.2s;
+}
+.lesson.locked:hover .lesson-lock-cta { transform:scale(1.05); }
+.lesson-lock-text { font-size:11px; color:rgba(255,255,255,0.7); max-width:180px; }
+
+/* BIG PAYWALL CTA below modules */
+.bottom-cta {
+  margin-top:50px; padding:50px 30px; text-align:center;
+  background:linear-gradient(140deg, rgba(255,157,58,0.08), rgba(255,126,58,0.04));
+  border:1px solid rgba(255,157,58,0.2); border-radius:24px;
+}
+.bottom-cta h2 { font-size:26px; font-weight:800; margin-bottom:10px; }
+.bottom-cta p { font-size:14px; color:var(--text3); max-width:520px; margin:0 auto 24px; line-height:1.55; }
+.bottom-cta-btn {
+  display:inline-block; padding:16px 38px; border-radius:14px;
+  font-size:15px; font-weight:700; color:#fff; cursor:pointer;
+  background:linear-gradient(135deg, var(--orange), #ff7e3a);
+  box-shadow:0 8px 28px rgba(255,157,58,0.4);
+  transition:transform 0.2s;
+}
+.bottom-cta-btn:hover { transform:translateY(-2px); }
+
+/* PLAYER MODAL */
+.modal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+  display:none; align-items:center; justify-content:center; z-index:200; padding:20px;
+}
+.modal.show { display:flex; }
+.modal-card {
+  width:100%; max-width:1000px; background:#0c1d30;
+  border:1px solid var(--border); border-radius:18px; overflow:hidden;
+  position:relative;
+}
+.modal-close {
+  position:absolute; top:14px; right:14px; z-index:10;
+  width:36px; height:36px; border-radius:10px;
+  background:rgba(0,0,0,0.6); color:#fff; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; border:none;
+}
+.modal-video { aspect-ratio:16/9; width:100%; background:#000; }
+.modal-video iframe { width:100%; height:100%; border:0; display:block; }
+.modal-body { padding:22px 26px 26px; }
+.modal-body h3 { font-size:18px; font-weight:700; margin-bottom:6px; }
+.modal-body p { font-size:13px; color:var(--text3); line-height:1.55; }
+
+/* EMPTY STATE */
+.empty {
+  text-align:center; padding:80px 20px; color:var(--text3);
+}
+
+@media (max-width: 600px) {
+  .topnav { padding:0 18px; }
+  .container { padding:20px 18px 60px; }
+  .module { padding:22px 18px; }
+  .lessons { grid-template-columns:1fr 1fr; }
+  .lesson-thumb { aspect-ratio:16/10; }
+}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-badge">SI</div>
+    <span>Setter con IA</span>
+  </div>
+  <div class="topnav-right">
+    <a href="/login.html" class="btn-login">Ya pagué</a>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-badge">🎓 Curso completo</div>
+  <h1>Setter con IA</h1>
+  <p>Mirá el primer módulo gratis. Si te gusta lo que ves, accedé al curso completo.</p>
+</div>
+
+<div class="container" id="modulesContainer">
+  <div class="empty">Cargando contenido...</div>
+</div>
+
+<!-- Player Modal -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-video" id="modalVideo"></div>
+    <div class="modal-body">
+      <h3 id="modalTitle"></h3>
+      <p id="modalDesc"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+let CHECKOUT_URL = '#';
+
+async function loadCheckoutUrl() {
+  try {
+    const res = await fetch('/api/public/checkout-url');
+    const data = await res.json();
+    if (data.url) CHECKOUT_URL = data.url;
+  } catch (e) {}
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function videoEmbed(url, type) {
+  if (!url) return '';
+  if (type === 'pdf' || type === 'link') {
+    return `<iframe src="${escapeHtml(url)}" allow="fullscreen" allowfullscreen></iframe>`;
+  }
+  // try detect platform
+  if (/loom\.com\/share\//.test(url)) {
+    const id = url.match(/share\/([a-z0-9]+)/i)?.[1];
+    if (id) return `<iframe src="https://www.loom.com/embed/${id}" allowfullscreen></iframe>`;
+  }
+  if (/youtube\.com\/watch|youtu\.be\//.test(url)) {
+    const id = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+    if (id) return `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
+  }
+  if (/vimeo\.com\//.test(url)) {
+    const id = url.match(/vimeo\.com\/(\d+)/)?.[1];
+    if (id) return `<iframe src="https://player.vimeo.com/video/${id}" allowfullscreen></iframe>`;
+  }
+  return `<iframe src="${escapeHtml(url)}" allowfullscreen></iframe>`;
+}
+
+function openModal(lesson) {
+  if (lesson.is_locked || !lesson.content_url) {
+    redirectToCheckout();
+    return;
+  }
+  document.getElementById('modalTitle').textContent = lesson.title || '';
+  document.getElementById('modalDesc').textContent = lesson.description || '';
+  document.getElementById('modalVideo').innerHTML = videoEmbed(lesson.content_url, lesson.content_type);
+  document.getElementById('modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('modalVideo').innerHTML = '';
+  document.body.style.overflow = '';
+}
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function redirectToCheckout() {
+  if (CHECKOUT_URL && CHECKOUT_URL !== '#') {
+    window.open(CHECKOUT_URL, '_blank');
+  } else {
+    alert('Configurá el link de acceso desde el panel admin');
+  }
+}
+
+function lessonCardHtml(lesson) {
+  const thumb = lesson.thumbnail
+    ? `<img src="${escapeHtml(lesson.thumbnail)}" alt="">`
+    : `<span style="font-size:36px;">🎬</span>`;
+  if (lesson.is_locked) {
+    return `
+      <div class="lesson locked" onclick="redirectToCheckout()">
+        <div class="lesson-thumb">${thumb}</div>
+        <div class="lesson-body">
+          <div class="lesson-title">${escapeHtml(lesson.title)}</div>
+          <div class="lesson-meta">${lesson.duration ? '⏱ ' + escapeHtml(lesson.duration) : ''}</div>
+        </div>
+        <div class="lesson-lock">
+          <div class="lesson-lock-icon">🔒</div>
+          <div class="lesson-lock-cta">Accedé al curso</div>
+          <div class="lesson-lock-text">Desbloqueá esta y todas las lecciones</div>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="lesson" data-id="${lesson.id}">
+      <div class="lesson-thumb">${thumb}</div>
+      <div class="lesson-body">
+        <div class="lesson-title">${escapeHtml(lesson.title)}</div>
+        <div class="lesson-meta">
+          ${lesson.duration ? '⏱ ' + escapeHtml(lesson.duration) : ''}
+          ${lesson.content_type ? '· ' + escapeHtml(lesson.content_type) : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadCurso() {
+  await loadCheckoutUrl();
+  const container = document.getElementById('modulesContainer');
+  try {
+    const res = await fetch('/api/public/curso');
+    const data = await res.json();
+    const modules = data.modules || [];
+
+    if (!modules.length) {
+      container.innerHTML = '<div class="empty">El contenido del curso se está preparando. Volvé pronto.</div>';
+      return;
+    }
+
+    let html = '';
+    let hasAnyLocked = false;
+    for (const m of modules) {
+      const allLocked = m.lessons.length > 0 && m.lessons.every(l => l.is_locked);
+      const anyLocked = m.lessons.some(l => l.is_locked);
+      if (anyLocked) hasAnyLocked = true;
+      const tag = allLocked
+        ? '<div class="module-tag locked">🔒 Premium</div>'
+        : '<div class="module-tag">✓ Gratis</div>';
+      html += `
+        <div class="module">
+          <div class="module-head">
+            <div class="module-icon">${escapeHtml(m.icon || '📚')}</div>
+            <div class="module-meta">
+              <h2>${escapeHtml(m.title)}</h2>
+              ${m.description ? `<p>${escapeHtml(m.description)}</p>` : ''}
+            </div>
+            ${tag}
+          </div>
+          <div class="lessons">
+            ${m.lessons.map(lessonCardHtml).join('') || '<div class="empty" style="grid-column:1/-1; padding:40px;">Sin lecciones aún</div>'}
+          </div>
+        </div>`;
+    }
+
+    if (hasAnyLocked) {
+      html += `
+        <div class="bottom-cta">
+          <h2>¿Querés desbloquear todo el curso?</h2>
+          <p>Accedé a todos los módulos, recursos y comunidad. Setter con IA es la base que necesitás.</p>
+          <a href="#" onclick="redirectToCheckout(); return false;" class="bottom-cta-btn">Accedé al curso completo →</a>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+
+    // Bind unlocked lesson clicks
+    container.querySelectorAll('.lesson:not(.locked)').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = parseInt(card.dataset.id);
+        const lesson = modules.flatMap(m => m.lessons).find(l => l.id === id);
+        if (lesson) openModal(lesson);
+      });
+    });
+  } catch (err) {
+    container.innerHTML = '<div class="empty">Error al cargar el contenido. Reintentá en un momento.</div>';
+    console.error(err);
+  }
+}
+
+loadCurso();
+</script>
+
+</body>
+</html>

@@ -223,14 +223,14 @@ router.get('/lessons', async (req, res) => {
 });
 
 router.post('/lessons', async (req, res) => {
-  const { module_id, title, description, content_type, content_url, thumbnail, duration } = req.body;
+  const { module_id, title, description, content_type, content_url, thumbnail, duration, is_locked } = req.body;
   try {
     const maxOrder = await pool.query(
       'SELECT COALESCE(MAX(order_position), 0) + 1 as next FROM lessons WHERE module_id = $1', [module_id]
     );
     const result = await pool.query(
-      'INSERT INTO lessons (module_id, title, description, content_type, content_url, thumbnail, duration, order_position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-      [module_id, title, description, content_type, content_url, thumbnail || '', duration || '', maxOrder.rows[0].next]
+      'INSERT INTO lessons (module_id, title, description, content_type, content_url, thumbnail, duration, order_position, is_locked) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+      [module_id, title, description, content_type, content_url, thumbnail || '', duration || '', maxOrder.rows[0].next, !!is_locked]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -239,11 +239,37 @@ router.post('/lessons', async (req, res) => {
 });
 
 router.put('/lessons/:id', async (req, res) => {
-  const { title, description, content_type, content_url, thumbnail, duration, order_position } = req.body;
+  const { title, description, content_type, content_url, thumbnail, duration, order_position, is_locked } = req.body;
   try {
     await pool.query(
-      'UPDATE lessons SET title=$1, description=$2, content_type=$3, content_url=$4, thumbnail=$5, duration=$6, order_position=$7 WHERE id=$8',
-      [title, description, content_type, content_url, thumbnail, duration, order_position, req.params.id]
+      'UPDATE lessons SET title=$1, description=$2, content_type=$3, content_url=$4, thumbnail=$5, duration=$6, order_position=$7, is_locked=$8 WHERE id=$9',
+      [title, description, content_type, content_url, thumbnail, duration, order_position, !!is_locked, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── APP SETTINGS (checkout_url, etc.) ───
+router.get('/settings', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT key, value FROM app_settings');
+    const map = {};
+    for (const row of result.rows) map[row.key] = row.value;
+    res.json(map);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/settings/:key', async (req, res) => {
+  const { value } = req.body;
+  try {
+    await pool.query(
+      `INSERT INTO app_settings (key, value, updated_at) VALUES ($1, $2, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+      [req.params.key, value || '']
     );
     res.json({ ok: true });
   } catch (err) {

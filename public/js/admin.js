@@ -38,6 +38,7 @@ function switchTab(tab) {
   document.querySelectorAll(`.mobile-nav button[data-tab="${tab}"]`).forEach(b => b.classList.add('active'));
 
   if (tab === 'lessons') loadLessons();
+  if (tab === 'settings') loadSettings();
   if (tab === 'progress') loadProgress();
   if (tab === 'approvals') loadApprovals();
   if (tab === 'calls') loadCalls();
@@ -401,7 +402,10 @@ async function loadLessons() {
       return `
         <tr>
           <td>${l.order_position}</td>
-          <td style="color:#fff;font-weight:600;">${esc(l.title)}</td>
+          <td style="color:#fff;font-weight:600;">
+            ${esc(l.title)}
+            ${l.is_locked ? '<span style="margin-left:8px; font-size:10px; padding:2px 6px; border-radius:5px; background:rgba(255,157,58,0.15); color:#ff9d3a; font-weight:700;">🔒 BLOQUEADO</span>' : ''}
+          </td>
           <td><span class="badge ${l.content_type === 'video' ? 'badge-admin' : 'badge-client'}">${l.content_type}</span></td>
           <td>${mod ? esc(mod.title) : '-'}</td>
           <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(l.content_url)}</td>
@@ -448,6 +452,15 @@ function lessonForm(data) {
       <div class="field"><label class="label">Thumbnail (URL imagen)</label><input class="input" id="f-thumb" value="${data ? esc(data.thumbnail || '') : ''}" placeholder="https://... o dejar vacío"></div>
       <div class="field"><label class="label">Duración</label><input class="input" id="f-duration" value="${data ? esc(data.duration || '') : ''}" placeholder="ej: 12:30"></div>
       <div class="field"><label class="label">Orden</label><input class="input" type="number" id="f-order" value="${data ? data.order_position : '1'}"></div>
+      <div class="field" style="background:rgba(255,157,58,0.06); border:1px solid rgba(255,157,58,0.2); border-radius:10px; padding:14px;">
+        <label class="label" style="display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:0;">
+          <input type="checkbox" id="f-locked" ${data?.is_locked ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;">
+          <span style="color:#fff; font-weight:600;">🔒 Bloqueado</span>
+        </label>
+        <div style="font-size:12px; color:var(--text-muted, #7a93aa); margin-top:6px; margin-left:28px;">
+          Si está marcado, esta lección NO se puede ver gratis en /curso. Aparece con candado y CTA al checkout.
+        </div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
         <button type="submit" class="btn">Guardar</button>
@@ -491,12 +504,27 @@ async function saveLesson(e) {
     thumbnail: document.getElementById('f-thumb').value,
     duration: document.getElementById('f-duration').value,
     order_position: parseInt(document.getElementById('f-order').value),
+    is_locked: document.getElementById('f-locked')?.checked || false,
   };
   try {
     if (editingId) await api(`/api/admin/lessons/${editingId}`, { method: 'PUT', body });
     else await api('/api/admin/lessons', { method: 'POST', body });
     closeModal(); loadLessons();
     toast(editingId ? 'Lección actualizada' : 'Lección creada');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function loadSettings() {
+  try {
+    const data = await api('/api/admin/settings');
+    document.getElementById('settingCheckoutUrl').value = data.checkout_url || '';
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function saveCheckoutUrl() {
+  const value = document.getElementById('settingCheckoutUrl').value.trim();
+  try {
+    await api('/api/admin/settings/checkout_url', { method: 'PUT', body: { value } });
+    toast('Link guardado');
   } catch (err) { toast(err.message, 'error'); }
 }
 

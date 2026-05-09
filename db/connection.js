@@ -52,8 +52,16 @@ async function initDB() {
       DO $$ BEGIN
         ALTER TABLE lessons ADD COLUMN IF NOT EXISTS thumbnail TEXT;
         ALTER TABLE lessons ADD COLUMN IF NOT EXISTS duration VARCHAR(20);
+        ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
       EXCEPTION WHEN duplicate_column THEN NULL;
       END $$;
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      INSERT INTO app_settings (key, value) VALUES ('checkout_url', 'https://wa.me/5491136109797?text=Hola%20Juan%2C%20quiero%20acceso%20al%20curso%20Setter%20con%20IA')
+        ON CONFLICT (key) DO NOTHING;
       CREATE TABLE IF NOT EXISTS resources (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,

@@ -103,10 +103,11 @@ app.use('/api/bots', require('./routes/bots'));
 app.use('/api/closer', require('./routes/closer'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/sync', require('./routes/sync'));
+app.use('/api/public', require('./routes/public'));
 
-// Root redirect
+// Root → curso público (sin login)
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  res.redirect('/curso.html');
 });
 
 async function start() {
