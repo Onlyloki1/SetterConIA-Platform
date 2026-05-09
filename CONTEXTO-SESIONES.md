@@ -69,6 +69,32 @@ Fork de la plataforma B2C Smart Acquisition para vender un curso aparte llamado 
 
 ---
 
+## Sesión 2026-05-09 (parte 2) — VSL gate (intro video obligatorio antes del classroom)
+
+**Idea del user**: cuando alguien entra a la URL raíz, ANTES de ver el classroom le muestra un video sí o sí. Abajo del video hay un countdown "El acceso se desbloquea en 2:00..." y un botón "INGRESAR". Cuando termina el countdown el botón se resalta (verde, pulsando) — pero **en esta versión el botón está siempre clickable** (mientras el user testea/configura). Click → lleva al `/curso.html` que ya existía.
+
+**Cambios** (commit `bbf6914`):
+
+- DB: 2 nuevas keys en `app_settings`: `intro_video_url` (default vacío) y `intro_gate_enabled` (default `false`, no se usa todavía pero queda preparado para activar el gate real)
+- `routes/public.js`: nuevo endpoint `GET /api/public/settings` que devuelve solo las keys públicas (`checkout_url`, `intro_video_url`, `intro_gate_enabled`). El existente `/checkout-url` se queda por compat.
+- `public/intro.html` (NUEVO): hero con badge "Setter con IA", card grande con video embed (auto-detect Loom/YouTube/Vimeo desde `intro_video_url`), countdown visual de 2:00, botón "INGRESAR" siempre habilitado. Cuando llega a 0:00 el countdown se oculta y el botón se vuelve verde con animación pulse + label cambia a "✓ INGRESAR AHORA". Link "Ya pagaste? Iniciá sesión" abajo discreto.
+- `server.js`: `/` ahora redirige a `/intro.html` (antes era `/curso.html`).
+- `public/admin.html`: nuevo card "Video de intro (VSL gate)" arriba del card de checkout, con input para pegar URL del video + botón "Ver intro →" para previsualizar.
+- `public/js/admin.js`: `loadSettings` ahora lee también `intro_video_url`, nueva función `saveIntroVideo`.
+
+**Flujo del visitor**:
+1. Entra a `/` → redirect a `/intro.html`
+2. Ve el video (autoplay si hay URL configurada) + countdown 2:00 corriendo
+3. **Ahora**: puede clickear "INGRESAR" desde t=0 (botón siempre abierto)
+4. Click → `/curso.html` (classroom público con módulos/lecciones)
+5. Lecciones bloqueadas siguen abriendo el link de checkout (WhatsApp por default)
+
+**Cuándo activar el gate real**: cuando el user diga, cambiar la lógica del botón en `intro.html` para que esté `disabled` mientras `remaining > 0` y se habilite a 0. La key `intro_gate_enabled` en DB ya existe para flag-gate eso server-side si se quiere.
+
+**Configurar el video**: Admin → Configuración → "URL del video (Loom/YouTube/Vimeo)" → pegar URL → Guardar. La página `/intro.html` levanta el embed automático.
+
+---
+
 ## Sesión 2026-05-09 — Modelo público con paywall blando
 
 **Concepto del user**: cambiar de plataforma cerrada a **classroom público**. Cualquiera entra, ve el curso, las lecciones gratis se reproducen normal y las bloqueadas tienen overlay 🔒 + CTA a un link configurable (WhatsApp por default). Sin checkout — el cobro lo resuelve el user manual fuera de la plataforma. Cuando alguien paga, se le crea cuenta desde el admin existente y se loguea en `/login.html` para ver todo desbloqueado.
