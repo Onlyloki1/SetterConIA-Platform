@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/curso', async (req, res) => {
   try {
     const modulesResult = await pool.query(
-      `SELECT id, title, description, icon, cover_image, order_position, is_bonus
+      `SELECT id, title, description, icon, cover_image, order_position, is_bonus, is_locked
        FROM modules
        ORDER BY order_position ASC`
     );
@@ -17,8 +17,14 @@ router.get('/curso', async (req, res) => {
        ORDER BY module_id, order_position ASC`
     );
 
+    // Set de modules bloqueados a nivel modulo entero
+    const lockedModuleIds = new Set(modulesResult.rows.filter(m => m.is_locked).map(m => m.id));
+
     const lessonsByModule = {};
     for (const lesson of lessonsResult.rows) {
+      // Si el modulo entero esta bloqueado, todas las lessons se tratan como bloqueadas (no expone content_url)
+      const moduleLocked = lockedModuleIds.has(lesson.module_id);
+      const effectiveLocked = lesson.is_locked || moduleLocked;
       const safe = {
         id: lesson.id,
         module_id: lesson.module_id,
@@ -27,9 +33,9 @@ router.get('/curso', async (req, res) => {
         thumbnail: lesson.thumbnail,
         duration: lesson.duration,
         order_position: lesson.order_position,
-        is_locked: lesson.is_locked,
-        content_type: lesson.is_locked ? null : lesson.content_type,
-        content_url: lesson.is_locked ? null : lesson.content_url,
+        is_locked: effectiveLocked,
+        content_type: effectiveLocked ? null : lesson.content_type,
+        content_url: effectiveLocked ? null : lesson.content_url,
       };
       if (!lessonsByModule[lesson.module_id]) lessonsByModule[lesson.module_id] = [];
       lessonsByModule[lesson.module_id].push(safe);

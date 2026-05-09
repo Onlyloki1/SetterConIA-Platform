@@ -157,12 +157,12 @@ router.get('/modules', async (req, res) => {
 });
 
 router.post('/modules', async (req, res) => {
-  const { title, description, icon, cover_image, is_bonus } = req.body;
+  const { title, description, icon, cover_image, is_bonus, is_locked } = req.body;
   try {
     const maxOrder = await pool.query('SELECT COALESCE(MAX(order_position), 0) + 1 as next FROM modules');
     const result = await pool.query(
-      'INSERT INTO modules (title, description, icon, cover_image, order_position, is_bonus) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [title, description, icon || '📚', cover_image || '', maxOrder.rows[0].next, is_bonus || false]
+      'INSERT INTO modules (title, description, icon, cover_image, order_position, is_bonus, is_locked) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [title, description, icon || '📚', cover_image || '', maxOrder.rows[0].next, !!is_bonus, !!is_locked]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -171,11 +171,11 @@ router.post('/modules', async (req, res) => {
 });
 
 router.put('/modules/:id', async (req, res) => {
-  const { title, description, icon, cover_image, order_position, is_bonus } = req.body;
+  const { title, description, icon, cover_image, order_position, is_bonus, is_locked } = req.body;
   try {
     await pool.query(
-      'UPDATE modules SET title=$1, description=$2, icon=$3, cover_image=$4, order_position=$5, is_bonus=$6 WHERE id=$7',
-      [title, description, icon, cover_image, order_position, is_bonus || false, req.params.id]
+      'UPDATE modules SET title=$1, description=$2, icon=$3, cover_image=$4, order_position=$5, is_bonus=$6, is_locked=$7 WHERE id=$8',
+      [title, description, icon, cover_image, order_position, !!is_bonus, !!is_locked, req.params.id]
     );
     res.json({ ok: true });
   } catch (err) {

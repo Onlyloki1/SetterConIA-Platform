@@ -35,6 +35,7 @@ async function initDB() {
       END $$;
       DO $$ BEGIN
         ALTER TABLE modules ADD COLUMN IF NOT EXISTS is_bonus BOOLEAN DEFAULT FALSE;
+        ALTER TABLE modules ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
       EXCEPTION WHEN duplicate_column THEN NULL;
       END $$;
       CREATE TABLE IF NOT EXISTS lessons (

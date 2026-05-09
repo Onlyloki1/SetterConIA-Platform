@@ -841,9 +841,34 @@ function renderPublicClassroom() {
   }
   g.innerHTML = modules.map((m,i) => {
     const cover = m.cover_image ? `background-image:url('${esc(m.cover_image)}')` : `background:linear-gradient(135deg,#1a1a2e,#16213e)`;
+    const moduleLocked = !!m.is_locked;
     const allLocked = m._allLocked;
     const total = m.total_lessons || 0;
     const freeCount = (m._publicLessons||[]).filter(l => !l.is_locked).length;
+
+    // Caso 1: modulo bloqueado a nivel modulo (toggle del admin) → mensaje custom "Curso bloqueado, se desbloquea al abonar"
+    if (moduleLocked) {
+      return `<div class="course-card" style="cursor:pointer;position:relative;overflow:hidden;" onclick="publicCheckoutClick()">
+        <div class="course-cover" style="${cover};filter:blur(3px) brightness(0.35);">
+          <div class="course-cover-overlay">
+            <div class="course-cover-badge">${m.is_bonus?'🎁 BONUS':'Módulo '+String(i+1).padStart(2,'0')}</div>
+            <div class="course-cover-title">${esc(m.title)}</div>
+          </div>
+        </div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:5;width:80%;">
+          <div style="font-size:46px;margin-bottom:10px;">🔒</div>
+          <div style="font-size:13px;color:#fff;font-weight:700;line-height:1.35;text-shadow:0 2px 8px rgba(0,0,0,0.6);">Curso bloqueado</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:500;margin-top:4px;text-shadow:0 2px 8px rgba(0,0,0,0.6);">Se desbloquea al abonar</div>
+          <div style="display:inline-block;margin-top:14px;padding:8px 18px;background:linear-gradient(135deg,#ff9d3a,#ff7e3a);border-radius:8px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.5px;box-shadow:0 6px 18px rgba(255,157,58,0.4);">DESBLOQUEAR →</div>
+        </div>
+        <div class="course-body" style="filter:blur(2px);opacity:0.4;">
+          <div class="course-name">${esc(m.title)}</div>
+          <div class="course-desc">${esc(m.description||'')}</div>
+        </div>
+      </div>`;
+    }
+
+    // Caso 2: TODAS las lessons del modulo estan bloqueadas individualmente → render bloqueado simple
     if (allLocked) {
       return `<div class="course-card" style="cursor:pointer;position:relative;overflow:hidden;" onclick="publicCheckoutClick()">
         <div class="course-cover" style="${cover};filter:blur(3px) brightness(0.4);">
@@ -1272,11 +1297,18 @@ function openModuleModal(id) {
       <div id="cover-upload-status" style="font-size:11px;color:var(--text3);margin-top:4px;"></div>
     </div>
     <div class="modal-field"><div class="modal-label">Icono (emoji)</div><input class="modal-input" id="m-icon" value="${m?m.icon:'📚'}" style="width:60px;"></div>
-    <div class="modal-field">
+    <div class="modal-field" style="display:flex;flex-direction:column;gap:12px;">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="checkbox" id="m-bonus" ${m&&m.is_bonus?'checked':''} style="width:18px;height:18px;">
         <span style="padding:6px 14px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:8px;color:#fff;font-size:13px;font-weight:700;">🎁 Bonus</span>
       </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="m-locked" ${m&&m.is_locked?'checked':''} style="width:18px;height:18px;">
+        <span style="padding:6px 14px;background:linear-gradient(135deg,#ff9d3a,#ff7e3a);border-radius:8px;color:#fff;font-size:13px;font-weight:700;">🔒 Bloqueado (premium)</span>
+      </label>
+      <div style="font-size:11px;color:var(--text3);margin-left:28px;line-height:1.5;">
+        Si lo marcás, el módulo aparece bloqueado en el classroom público con el mensaje "Curso bloqueado, se desbloquea al abonar". Click en el módulo lleva al checkout.
+      </div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -1291,6 +1323,7 @@ async function saveModule(id) {
     cover_image: document.getElementById('m-cover').value,
     icon: document.getElementById('m-icon').value || '📚',
     is_bonus: document.getElementById('m-bonus').checked,
+    is_locked: document.getElementById('m-locked')?.checked || false,
   };
   if (!body.title) return;
   if (id) {
