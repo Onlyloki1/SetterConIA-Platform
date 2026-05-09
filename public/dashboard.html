@@ -248,6 +248,9 @@ h1,h2,h3,h4,.cc-title,.course-cover-title,.sw-item-title,.resources-title { font
 /* ── ADMIN INLINE ── */
 .admin-only { display:none; }
 body.is-admin .admin-only { display:flex; }
+.public-only { display:none !important; }
+body.is-public .public-only { display:flex !important; }
+body.is-public .auth-only { display:none !important; }
 
 /* New course card */
 .new-course-card {
@@ -457,10 +460,12 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
     <div class="topnav-tab" id="tabDiscord" data-view="discord" onclick="showMainView('discord')" style="background:rgba(37,211,102,0.15);border-color:rgba(37,211,102,0.3);color:#25d366;white-space:nowrap;display:none;">🎓 Clases en vivo</div>
   </div>
   <div class="topnav-right">
-    <span class="topnav-user" id="userName"></span>
+    <span class="topnav-user auth-only" id="userName"></span>
     <a href="/admin.html" class="btn-logout admin-only" style="text-decoration:none;background:var(--accent);color:#fff;border-color:var(--accent);">Admin</a>
-    <div class="topnav-avatar" id="userAvatar"></div>
-    <button class="btn-logout" onclick="logout()">Salir</button>
+    <div class="topnav-avatar auth-only" id="userAvatar"></div>
+    <button class="btn-logout auth-only" onclick="logout()">Salir</button>
+    <button class="btn-logout public-only" onclick="publicCheckoutClick()" style="background:linear-gradient(135deg,#ff9d3a,#ff7e3a);color:#fff;border-color:transparent;font-weight:700;padding:8px 16px;">Acceder al curso</button>
+    <a href="/login.html" class="btn-logout public-only" style="text-decoration:none;">Iniciar sesión</a>
   </div>
 </div>
 
@@ -654,58 +659,96 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
 <script>
 let user = null, modules = [], lessons = [], activeLesson = null, currentModuleId = null;
 let isAdmin = false;
+let isPublic = false;
+let publicCheckoutUrl = '';
 
 // ── INIT ──
 async function init() {
+  // Try auth first
+  let authed = false;
   try {
     const r = await fetch('/api/auth/me');
-    if (!r.ok) throw new Error();
-    user = await r.json();
-    isAdmin = user.role === 'admin';
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
-    if (isAdmin) document.body.classList.add('is-admin');
-    if (user.has_discord || isAdmin) document.getElementById('tabDiscord').style.display = '';
-    // Reserve: hide all tabs except Classroom, show upgrade button
-    if (!isAdmin && user.access_type === 'reserve') {
-      document.querySelectorAll('.topnav-tab').forEach(t => {
-        if (t.dataset.view !== 'classroom') t.style.display = 'none';
-      });
-      const tabs = document.querySelector('.topnav-tabs');
-      tabs.insertAdjacentHTML('beforeend', `
-        <a href="https://wa.link/jvao5e" target="_blank" rel="noopener" style="
-          display:flex;align-items:center;gap:8px;padding:10px 24px;
-          background:linear-gradient(135deg,#f59e0b,#d97706);
-          color:#fff;font-size:13px;font-weight:700;border-radius:10px;
-          text-decoration:none;white-space:nowrap;
-          animation:pulseUpgrade 2s ease-in-out infinite;
-        ">🚀 Completar pago del programa</a>
-      `);
+    if (r.ok) {
+      user = await r.json();
+      authed = true;
     }
-    // Check flow: onboarding → approval → classroom
-    if (!isAdmin && user.rejected) {
-      document.querySelector('.topnav').style.display = 'none';
-      document.body.classList.add('ready');
-      showMainView('rejected');
-    } else if (!isAdmin && !user.onboarding_completed) {
-      document.querySelector('.topnav').style.display = 'none';
-      document.body.classList.add('ready');
-      showMainView('onboarding');
-    } else if (!isAdmin && !user.approved) {
-      document.querySelector('.topnav').style.display = 'none';
-      document.body.classList.add('ready');
-      showMainView('pending');
-    } else {
-      document.body.classList.add('ready');
-      loadClassroom();
-    }
-  } catch { location.href = '/login.html'; }
+  } catch {}
+
+  if (!authed) {
+    // PUBLIC MODE: visitor sin sesión → entra al classroom público con bloqueos
+    isPublic = true;
+    document.body.classList.add('is-public');
+    try {
+      const s = await fetch('/api/public/settings').then(r => r.json());
+      publicCheckoutUrl = s.checkout_url || '';
+    } catch {}
+    document.body.classList.add('ready');
+    loadClassroom();
+    return;
+  }
+
+  isAdmin = user.role === 'admin';
+  document.getElementById('userName').textContent = user.name;
+  document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+  if (isAdmin) document.body.classList.add('is-admin');
+  if (user.has_discord || isAdmin) document.getElementById('tabDiscord').style.display = '';
+  // Reserve: hide all tabs except Classroom, show upgrade button
+  if (!isAdmin && user.access_type === 'reserve') {
+    document.querySelectorAll('.topnav-tab').forEach(t => {
+      if (t.dataset.view !== 'classroom') t.style.display = 'none';
+    });
+    const tabs = document.querySelector('.topnav-tabs');
+    tabs.insertAdjacentHTML('beforeend', `
+      <a href="https://wa.link/jvao5e" target="_blank" rel="noopener" style="
+        display:flex;align-items:center;gap:8px;padding:10px 24px;
+        background:linear-gradient(135deg,#f59e0b,#d97706);
+        color:#fff;font-size:13px;font-weight:700;border-radius:10px;
+        text-decoration:none;white-space:nowrap;
+        animation:pulseUpgrade 2s ease-in-out infinite;
+      ">🚀 Completar pago del programa</a>
+    `);
+  }
+  // Check flow: onboarding → approval → classroom
+  if (!isAdmin && user.rejected) {
+    document.querySelector('.topnav').style.display = 'none';
+    document.body.classList.add('ready');
+    showMainView('rejected');
+  } else if (!isAdmin && !user.onboarding_completed) {
+    document.querySelector('.topnav').style.display = 'none';
+    document.body.classList.add('ready');
+    showMainView('onboarding');
+  } else if (!isAdmin && !user.approved) {
+    document.querySelector('.topnav').style.display = 'none';
+    document.body.classList.add('ready');
+    showMainView('pending');
+  } else {
+    document.body.classList.add('ready');
+    loadClassroom();
+  }
+}
+
+// Public-mode helpers
+function publicCheckoutClick() {
+  if (publicCheckoutUrl) window.open(publicCheckoutUrl, '_blank');
+  else alert('Configurá el link de acceso desde el panel admin → Configuración');
+}
+function publicTabBlocked() {
+  if (confirm('Para acceder a esta sección necesitás tener el curso completo.\n\n¿Ya pagaste? Apretá Cancelar y andá a "Iniciar sesión".\n¿No pagaste todavía? Apretá Aceptar para acceder al curso.')) {
+    publicCheckoutClick();
+  } else {
+    location.href = '/login.html';
+  }
 }
 
 async function logout() { await fetch('/api/auth/logout',{method:'POST'}); location.href='/login.html'; }
 
 // ── VIEWS ──
 function showMainView(v) {
+  // Public mode: solo classroom + course (la lección abierta) están permitidos
+  if (isPublic && v !== 'classroom' && v !== 'course') {
+    publicTabBlocked();
+    return;
+  }
   ['classroom','course','resources','onboarding','checkin','diario','discord','pending','rejected'].forEach(id => {
     const el = document.getElementById('view-'+id);
     if (el) el.style.display = 'none';
@@ -722,6 +765,19 @@ function showMainView(v) {
 
 // ── CLASSROOM ──
 async function loadClassroom() {
+  if (isPublic) {
+    const data = await fetch('/api/public/curso').then(r=>r.json());
+    modules = (data.modules || []).map(m => ({
+      ...m,
+      total_lessons: (m.lessons||[]).length,
+      completed_lessons: 0,
+      _publicLessons: m.lessons || [],
+      _allLocked: (m.lessons||[]).length > 0 && (m.lessons||[]).every(l => l.is_locked),
+      _anyLocked: (m.lessons||[]).some(l => l.is_locked),
+    }));
+    renderPublicClassroom();
+    return;
+  }
   modules = await fetch('/api/client/modules').then(r=>r.json());
   const g = document.getElementById('modulesGrid');
   const planMods = user.plan_modules || [];
@@ -777,6 +833,53 @@ async function loadClassroom() {
   if (isAdmin) g.innerHTML += `<div class="new-course-card admin-only" onclick="openModuleModal()">+ New course</div>`;
 }
 
+function renderPublicClassroom() {
+  const g = document.getElementById('modulesGrid');
+  if (!modules.length) {
+    g.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:80px 20px; color:var(--text3);">El curso se está preparando. Volvé pronto.</div>';
+    return;
+  }
+  g.innerHTML = modules.map((m,i) => {
+    const cover = m.cover_image ? `background-image:url('${esc(m.cover_image)}')` : `background:linear-gradient(135deg,#1a1a2e,#16213e)`;
+    const allLocked = m._allLocked;
+    const total = m.total_lessons || 0;
+    const freeCount = (m._publicLessons||[]).filter(l => !l.is_locked).length;
+    if (allLocked) {
+      return `<div class="course-card" style="cursor:pointer;position:relative;overflow:hidden;" onclick="publicCheckoutClick()">
+        <div class="course-cover" style="${cover};filter:blur(3px) brightness(0.4);">
+          <div class="course-cover-overlay">
+            <div class="course-cover-badge">${m.is_bonus?'🎁 BONUS':'Módulo '+String(i+1).padStart(2,'0')}</div>
+            <div class="course-cover-title">${esc(m.title)}</div>
+          </div>
+        </div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:5;">
+          <div style="font-size:40px;margin-bottom:8px;">🔒</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:1px;">DESBLOQUEAR</div>
+        </div>
+        <div class="course-body" style="filter:blur(2px);opacity:0.4;">
+          <div class="course-name">${esc(m.title)}</div>
+          <div class="course-desc">${esc(m.description||'')}</div>
+        </div>
+      </div>`;
+    }
+    const tag = m._anyLocked
+      ? `<span style="margin-left:8px;font-size:10px;padding:3px 8px;border-radius:5px;background:rgba(255,157,58,0.15);color:#ff9d3a;font-weight:700;letter-spacing:0.5px;">${freeCount}/${total} FREE</span>`
+      : `<span style="margin-left:8px;font-size:10px;padding:3px 8px;border-radius:5px;background:rgba(37,211,102,0.15);color:#25d366;font-weight:700;letter-spacing:0.5px;">GRATIS</span>`;
+    return `<div class="course-card" data-mid="${m.id}" onclick="openCourse(${m.id})">
+      <div class="course-cover" style="${cover}">
+        <div class="course-cover-overlay">
+          <div class="course-cover-badge" ${m.is_bonus?'style="background:linear-gradient(135deg,#f59e0b,#d97706);"':''}>${m.is_bonus?'🎁 BONUS':'Módulo '+String(i+1).padStart(2,'0')}</div>
+          <div class="course-cover-title">${esc(m.title)}</div>
+        </div>
+      </div>
+      <div class="course-body">
+        <div class="course-name">${esc(m.title)}${tag}</div>
+        <div class="course-desc">${esc(m.description||'')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── COURSE ──
 async function openCourse(id) {
   currentModuleId = id;
@@ -784,6 +887,15 @@ async function openCourse(id) {
   const mod = modules.find(m=>m.id===id);
   document.getElementById('csTitle').textContent = mod.title.toUpperCase();
   showMainView('course');
+
+  if (isPublic) {
+    lessons = (mod._publicLessons || []).map(l => ({ ...l, completed: false }));
+    updateSidebar();
+    const first = lessons.find(l=>!l.is_locked) || lessons[0];
+    if (first) selectLesson(first.id);
+    else document.getElementById('ccContent').innerHTML = '<div class="cc-empty"><p>No hay lecciones en este módulo todavía</p></div>';
+    return;
+  }
 
   lessons = await fetch(`/api/client/modules/${id}/lessons`).then(r=>r.json());
   updateSidebar();
@@ -829,6 +941,27 @@ function selectLesson(id) {
   document.querySelectorAll('.cs-lesson').forEach(el=>el.classList.remove('active'));
   const el = document.getElementById('sl-'+id);
   if (el) el.classList.add('active');
+
+  // PUBLIC + LOCKED: paywall overlay instead of video
+  if (isPublic && l.is_locked) {
+    document.getElementById('ccContent').innerHTML = `
+      <div class="cc-title">${esc(l.title)}</div>
+      <div style="max-width:560px;margin:30px 0;padding:50px 40px;text-align:center;background:linear-gradient(140deg,rgba(255,157,58,0.08),rgba(255,126,58,0.04));border:1px solid rgba(255,157,58,0.25);border-radius:20px;">
+        <div style="font-size:54px;margin-bottom:18px;">🔒</div>
+        <h2 style="font-size:22px;font-weight:800;margin-bottom:10px;color:#fff;">Lección bloqueada</h2>
+        <p style="font-size:14px;color:var(--text3);max-width:420px;margin:0 auto 28px;line-height:1.55;">
+          Esta lección es parte del curso completo. Accedé para desbloquear todas las lecciones, módulos y recursos.
+        </p>
+        <button onclick="publicCheckoutClick()" style="
+          display:inline-flex;align-items:center;gap:10px;padding:16px 38px;
+          font-size:14px;font-weight:700;letter-spacing:0.5px;color:#fff;cursor:pointer;
+          background:linear-gradient(135deg,#ff9d3a,#ff7e3a);border:none;border-radius:14px;
+          box-shadow:0 8px 28px rgba(255,157,58,0.4);font-family:var(--font);
+        ">Accedé al curso completo →</button>
+      </div>
+    `;
+    return;
+  }
 
   // Build content — Skool style: title → video → description (with clickable links) → complete button
   let html = '';
