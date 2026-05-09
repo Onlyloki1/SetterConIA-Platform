@@ -62,6 +62,10 @@ async function initDB() {
       );
       INSERT INTO app_settings (key, value) VALUES ('checkout_url', 'https://wa.me/5491136109797?text=Hola%20Juan%2C%20quiero%20acceso%20al%20curso%20Setter%20con%20IA')
         ON CONFLICT (key) DO NOTHING;
+      INSERT INTO app_settings (key, value) VALUES ('intro_video_url', '')
+        ON CONFLICT (key) DO NOTHING;
+      INSERT INTO app_settings (key, value) VALUES ('intro_gate_enabled', 'false')
+        ON CONFLICT (key) DO NOTHING;
       CREATE TABLE IF NOT EXISTS resources (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,

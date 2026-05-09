@@ -518,6 +518,8 @@ async function loadSettings() {
   try {
     const data = await api('/api/admin/settings');
     document.getElementById('settingCheckoutUrl').value = data.checkout_url || '';
+    const introInput = document.getElementById('settingIntroVideo');
+    if (introInput) introInput.value = data.intro_video_url || '';
   } catch (err) { toast(err.message, 'error'); }
 }
 async function saveCheckoutUrl() {
@@ -525,6 +527,13 @@ async function saveCheckoutUrl() {
   try {
     await api('/api/admin/settings/checkout_url', { method: 'PUT', body: { value } });
     toast('Link guardado');
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function saveIntroVideo() {
+  const value = document.getElementById('settingIntroVideo').value.trim();
+  try {
+    await api('/api/admin/settings/intro_video_url', { method: 'PUT', body: { value } });
+    toast('Video de intro guardado');
   } catch (err) { toast(err.message, 'error'); }
 }
 

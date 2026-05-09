@@ -278,6 +278,24 @@
         <p class="page-subtitle" style="margin-bottom:0;">Ajustes generales de la plataforma pública.</p>
       </div>
       <div class="card" style="padding:28px; max-width:780px;">
+        <h2 style="font-size:16px; color:#fff; margin-bottom:6px;">Video de intro (VSL gate)</h2>
+        <p style="font-size:13px; color:var(--text-muted, #7a93aa); margin-bottom:18px; line-height:1.55;">
+          Es lo primero que ve cualquiera que entra a la plataforma. Después del countdown de 2 min ven el botón "INGRESAR" que los lleva al classroom.
+        </p>
+        <div class="field">
+          <label class="label">URL del video (Loom / YouTube / Vimeo)</label>
+          <input class="input" id="settingIntroVideo" placeholder="https://www.loom.com/share/... o https://youtu.be/..." style="font-family:monospace; font-size:13px;">
+          <div style="font-size:12px; color:var(--text-muted, #7a93aa); margin-top:8px;">
+            Pega cualquier URL de Loom, YouTube o Vimeo. El sistema la convierte en embed automático.
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn" onclick="saveIntroVideo()">Guardar video</button>
+          <button class="btn btn-ghost" onclick="window.open('/intro.html', '_blank')" style="margin-left:8px;">Ver intro →</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:28px; max-width:780px; margin-top:24px;">
         <h2 style="font-size:16px; color:#fff; margin-bottom:6px;">Link de acceso al curso completo</h2>
         <p style="font-size:13px; color:var(--text-muted, #7a93aa); margin-bottom:18px; line-height:1.55;">
           A donde redirige el botón "Accedé al curso completo" cuando alguien hace click en una lección bloqueada.

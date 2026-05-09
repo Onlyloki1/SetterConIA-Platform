@@ -105,9 +105,9 @@ app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/sync', require('./routes/sync'));
 app.use('/api/public', require('./routes/public'));
 
-// Root → curso público (sin login)
+// Root → intro VSL gate (después manda a /curso.html)
 app.get('/', (req, res) => {
-  res.redirect('/curso.html');
+  res.redirect('/intro.html');
 });
 
 async function start() {

@@ -57,4 +57,21 @@ router.get('/checkout-url', async (req, res) => {
   }
 });
 
+// GET /api/public/settings  → settings publicas (checkout_url, intro_video_url, intro_gate_enabled)
+const PUBLIC_KEYS = ['checkout_url', 'intro_video_url', 'intro_gate_enabled'];
+router.get('/settings', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT key, value FROM app_settings WHERE key = ANY($1::text[])',
+      [PUBLIC_KEYS]
+    );
+    const map = {};
+    for (const k of PUBLIC_KEYS) map[k] = '';
+    for (const row of result.rows) map[row.key] = row.value;
+    res.json(map);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
