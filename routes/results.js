@@ -30,11 +30,16 @@ function colorFromName(name) {
   return PALETTE[Math.abs(h) % PALETTE.length];
 }
 
+const uploadFields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'avatar_image', maxCount: 1 }
+]);
+
 // GET — cualquier user autenticado lista los posts
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, username, avatar_color, content, image_url,
+      `SELECT id, username, avatar_color, avatar_image_url, content, image_url,
               reaction_fire, reaction_heart, reaction_muscle, posted_at
        FROM result_posts ORDER BY posted_at ASC`
     );
@@ -45,18 +50,20 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST — solo admin crea posts
-router.post('/', authMiddleware, adminOnly, upload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, adminOnly, uploadFields, async (req, res) => {
   const { username, content, posted_at, reaction_fire, reaction_heart, reaction_muscle } = req.body;
   if (!username || !content) return res.status(400).json({ error: 'Username y contenido son requeridos' });
-  const image_url = req.file ? '/uploads/' + req.file.filename : null;
+  const image_url = req.files?.image?.[0] ? '/uploads/' + req.files.image[0].filename : null;
+  const avatar_image_url = req.files?.avatar_image?.[0] ? '/uploads/' + req.files.avatar_image[0].filename : null;
   const color = colorFromName(username);
   try {
     const result = await pool.query(
-      `INSERT INTO result_posts (username, avatar_color, content, image_url, reaction_fire, reaction_heart, reaction_muscle, posted_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7, COALESCE($8::timestamp, NOW())) RETURNING *`,
+      `INSERT INTO result_posts (username, avatar_color, avatar_image_url, content, image_url, reaction_fire, reaction_heart, reaction_muscle, posted_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8, COALESCE($9::timestamp, NOW())) RETURNING *`,
       [
         username.trim().slice(0, 80),
         color,
+        avatar_image_url,
         content.trim(),
         image_url,
         parseInt(reaction_fire) || 0,
@@ -72,9 +79,9 @@ router.post('/', authMiddleware, adminOnly, upload.single('image'), async (req, 
 });
 
 // PATCH — solo admin edita
-router.patch('/:id', authMiddleware, adminOnly, upload.single('image'), async (req, res) => {
+router.patch('/:id', authMiddleware, adminOnly, uploadFields, async (req, res) => {
   const { id } = req.params;
-  const { username, content, posted_at, reaction_fire, reaction_heart, reaction_muscle, remove_image } = req.body;
+  const { username, content, posted_at, reaction_fire, reaction_heart, reaction_muscle, remove_image, remove_avatar } = req.body;
   try {
     const existing = await pool.query('SELECT * FROM result_posts WHERE id = $1', [id]);
     if (existing.rows.length === 0) return res.status(404).json({ error: 'No existe' });
@@ -82,18 +89,23 @@ router.patch('/:id', authMiddleware, adminOnly, upload.single('image'), async (r
     const post = existing.rows[0];
     const newUsername = username?.trim().slice(0, 80) || post.username;
     let image_url = post.image_url;
-    if (req.file) image_url = '/uploads/' + req.file.filename;
+    if (req.files?.image?.[0]) image_url = '/uploads/' + req.files.image[0].filename;
     if (remove_image === 'true' || remove_image === true) image_url = null;
+
+    let avatar_image_url = post.avatar_image_url;
+    if (req.files?.avatar_image?.[0]) avatar_image_url = '/uploads/' + req.files.avatar_image[0].filename;
+    if (remove_avatar === 'true' || remove_avatar === true) avatar_image_url = null;
 
     const result = await pool.query(
       `UPDATE result_posts
-       SET username=$1, avatar_color=$2, content=$3, image_url=$4,
-           reaction_fire=$5, reaction_heart=$6, reaction_muscle=$7,
-           posted_at = COALESCE($8::timestamp, posted_at)
-       WHERE id=$9 RETURNING *`,
+       SET username=$1, avatar_color=$2, avatar_image_url=$3, content=$4, image_url=$5,
+           reaction_fire=$6, reaction_heart=$7, reaction_muscle=$8,
+           posted_at = COALESCE($9::timestamp, posted_at)
+       WHERE id=$10 RETURNING *`,
       [
         newUsername,
         colorFromName(newUsername),
+        avatar_image_url,
         content?.trim() || post.content,
         image_url,
         reaction_fire !== undefined ? (parseInt(reaction_fire) || 0) : post.reaction_fire,

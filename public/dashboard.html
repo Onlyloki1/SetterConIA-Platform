@@ -494,7 +494,9 @@ body.is-admin .results-add-btn { display:inline-flex; }
   display:flex; align-items:center; justify-content:center;
   color:#fff; font-weight:800; font-size:17px; font-family:var(--font-head);
   text-transform:uppercase; user-select:none;
+  overflow:hidden; background-size:cover; background-position:center;
 }
+.result-avatar.has-img { color:transparent; }
 .result-body { flex:1; min-width:0; }
 .result-head {
   display:flex; align-items:baseline; gap:10px; margin-bottom:3px; flex-wrap:wrap;
@@ -2328,8 +2330,12 @@ function renderResults() {
       p.reaction_muscle > 0 ? `<span class="result-reaction muscle"><span class="emoji">💪</span>${p.reaction_muscle}</span>` : '',
     ].filter(Boolean).join('');
 
+    const avatarStyle = p.avatar_image_url
+      ? `background-image:url('${esc(p.avatar_image_url)}');background-color:${p.avatar_color || '#4ab8fe'};`
+      : `background:${p.avatar_color || '#4ab8fe'};`;
+    const avatarClass = p.avatar_image_url ? 'result-avatar has-img' : 'result-avatar';
     html += `<div class="result-msg" data-id="${p.id}">
-      <div class="result-avatar" style="background:${p.avatar_color || '#4ab8fe'};">${esc(initials)}</div>
+      <div class="${avatarClass}" style="${avatarStyle}">${esc(initials)}</div>
       <div class="result-body">
         <div class="result-head">
           <span class="result-username">${esc(p.username)}</span>
@@ -2362,6 +2368,19 @@ function openResultPostModal(id) {
     <div class="modal-field">
       <div class="modal-label">Nombre de usuario</div>
       <input type="text" class="modal-input" id="rpUsername" placeholder="ej: Luis Gerardo" value="${esc(editing?.username || '')}" maxlength="80">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Foto de perfil (opcional)</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="rpAvatarPreview" style="width:56px;height:56px;border-radius:50%;flex-shrink:0;background:${editing?.avatar_image_url ? `url('${esc(editing.avatar_image_url)}') center/cover` : (editing?.avatar_color || '#4ab8fe')};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px;overflow:hidden;">${editing?.avatar_image_url ? '' : esc((editing?.username || 'A').charAt(0).toUpperCase())}</div>
+        <label style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;background:rgba(74,184,254,0.03);border:2px dashed rgba(74,184,254,0.2);border-radius:10px;cursor:pointer;font-size:12px;color:#4ab8fe;font-weight:600;">
+          <span>📷 Subir foto de perfil</span>
+          <small style="color:var(--text3);font-weight:400;">Si no subís, queda color random</small>
+          <input type="file" id="rpAvatarInput" accept="image/*" style="display:none;" onchange="previewResultAvatar(this)">
+        </label>
+        ${editing?.avatar_image_url ? `<button type="button" class="modal-btn modal-btn-cancel" style="padding:6px 12px;font-size:11px;" onclick="removeResultAvatar()">Quitar</button>` : ''}
+      </div>
+      <input type="hidden" id="rpRemoveAvatar" value="false">
     </div>
     <div class="modal-field">
       <div class="modal-label">Mensaje / win</div>
@@ -2417,6 +2436,25 @@ function removeResultImage() {
   document.getElementById('rpRemoveImage').value = 'true';
 }
 
+function previewResultAvatar(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  const preview = document.getElementById('rpAvatarPreview');
+  preview.style.background = `url('${url}') center/cover`;
+  preview.textContent = '';
+  document.getElementById('rpRemoveAvatar').value = 'false';
+}
+
+function removeResultAvatar() {
+  const preview = document.getElementById('rpAvatarPreview');
+  const username = document.getElementById('rpUsername').value || 'A';
+  preview.style.background = '#4ab8fe';
+  preview.textContent = username.charAt(0).toUpperCase();
+  document.getElementById('rpAvatarInput').value = '';
+  document.getElementById('rpRemoveAvatar').value = 'true';
+}
+
 async function saveResultPost(id) {
   const username = document.getElementById('rpUsername').value.trim();
   const content = document.getElementById('rpContent').value.trim();
@@ -2433,6 +2471,9 @@ async function saveResultPost(id) {
   const fileInput = document.getElementById('rpImageInput');
   if (fileInput.files[0]) fd.append('image', fileInput.files[0]);
   fd.append('remove_image', document.getElementById('rpRemoveImage').value);
+  const avatarInput = document.getElementById('rpAvatarInput');
+  if (avatarInput.files[0]) fd.append('avatar_image', avatarInput.files[0]);
+  fd.append('remove_avatar', document.getElementById('rpRemoveAvatar').value);
 
   const url = id && id !== null ? '/api/results/' + id : '/api/results';
   const method = id && id !== null ? 'PATCH' : 'POST';

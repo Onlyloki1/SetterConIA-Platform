@@ -321,6 +321,7 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         username VARCHAR(80) NOT NULL,
         avatar_color VARCHAR(20) DEFAULT '#4ab8fe',
+        avatar_image_url TEXT,
         content TEXT NOT NULL,
         image_url TEXT,
         reaction_fire INTEGER DEFAULT 0,
@@ -329,6 +330,7 @@ async function initDB() {
         posted_at TIMESTAMP DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT NOW()
       );
+      DO $$ BEGIN ALTER TABLE result_posts ADD COLUMN IF NOT EXISTS avatar_image_url TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END $$;
       CREATE INDEX IF NOT EXISTS idx_result_posts_posted ON result_posts(posted_at ASC);
 
       -- Performance indices
