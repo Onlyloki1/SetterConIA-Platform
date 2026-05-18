@@ -737,7 +737,6 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
     <a href="/admin.html" class="btn-logout admin-only" style="text-decoration:none;background:var(--accent);color:#fff;border-color:var(--accent);">Admin</a>
     <div class="topnav-avatar auth-only" id="userAvatar"></div>
     <button class="btn-logout auth-only" onclick="logout()">Salir</button>
-    <button class="btn-logout public-only" onclick="publicCheckoutClick()" style="background:linear-gradient(135deg,#ff9d3a,#ff7e3a);color:#fff;border-color:transparent;font-weight:700;padding:8px 16px;">Acceder al curso</button>
     <a href="/login.html" class="btn-logout public-only" style="text-decoration:none;">Iniciar sesión</a>
   </div>
 </div>
@@ -933,10 +932,6 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
   <button data-mtab="results" onclick="showMainView('results')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-2 5l9-9l-9-9l2 5l-7 4l7 4z"/></svg>
     Wins
-  </button>
-  <button data-mtab="resources" onclick="showMainView('resources')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    Recursos
   </button>
   <button class="mobile-cta-trabajo" onclick="openTrabajoCta()">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>

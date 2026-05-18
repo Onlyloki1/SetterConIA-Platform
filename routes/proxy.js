@@ -2,23 +2,40 @@ const express = require('express');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db/connection');
-const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Signed video URL — generates a temporary token that resolves to the real embed URL
-// The frontend NEVER sees the actual Loom/YouTube/Vimeo URL
-router.get('/video/:lessonId', authMiddleware, async (req, res) => {
+// Auth opcional: si hay cookie token válida, popula req.user; si no, sigue como visitor público
+function optionalAuth(req, res, next) {
+  const token = req.cookies?.token;
+  if (token) {
+    try { req.user = jwt.verify(token, process.env.JWT_SECRET); } catch {}
+  }
+  next();
+}
+
+// Signed video URL — auth opcional. Visitors públicos solo pueden acceder a lecciones NO bloqueadas
+// dentro de módulos NO bloqueados. El frontend NUNCA ve la URL real de Loom/YouTube/Vimeo.
+router.get('/video/:lessonId', optionalAuth, async (req, res) => {
   try {
-    // Check module access
     const lesson = await pool.query(
-      'SELECT l.content_url, l.content_type, l.module_id FROM lessons l WHERE l.id = $1',
+      `SELECT l.content_url, l.content_type, l.module_id, l.is_locked AS lesson_locked,
+              m.is_locked AS module_locked
+       FROM lessons l
+       JOIN modules m ON m.id = l.module_id
+       WHERE l.id = $1`,
       [req.params.lessonId]
     );
     if (lesson.rows.length === 0) return res.status(404).json({ error: 'Lección no encontrada' });
     if (lesson.rows[0].content_type !== 'video') return res.status(400).json({ error: 'No es un video' });
 
-    if (req.user.role !== 'admin') {
+    // Visitor público (sin auth): solo acceso a lecciones libres en módulos libres
+    if (!req.user) {
+      if (lesson.rows[0].lesson_locked || lesson.rows[0].module_locked) {
+        return res.status(403).json({ error: 'Contenido premium — accedé al curso para verlo' });
+      }
+    } else if (req.user.role !== 'admin') {
+      // Usuario logueado no-admin: chequear que el plan le permita este módulo
       const u = await pool.query('SELECT plan_id FROM users WHERE id=$1', [req.user.id]);
       if (u.rows[0]?.plan_id) {
         const p = await pool.query('SELECT allowed_modules FROM plans WHERE id=$1', [u.rows[0].plan_id]);
@@ -31,7 +48,7 @@ router.get('/video/:lessonId', authMiddleware, async (req, res) => {
 
     // Generate signed token valid for 30 minutes
     const token = jwt.sign(
-      { lessonId: parseInt(req.params.lessonId), userId: req.user.id },
+      { lessonId: parseInt(req.params.lessonId), userId: req.user?.id || null, isPublic: !req.user },
       process.env.JWT_SECRET,
       { expiresIn: '30m' }
     );
