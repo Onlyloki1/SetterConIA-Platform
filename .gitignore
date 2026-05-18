@@ -6,3 +6,4 @@ uploads/
 .DS_Store
 _railway-*
 *.png
+seed-wins.js
