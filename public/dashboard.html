@@ -458,6 +458,66 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
   50% { box-shadow:0 0 20px 4px rgba(245,158,11,0.3); }
 }
 
+/* Botón CTA en topnav mobile (solo visible <768px) */
+.topnav-cta-mobile {
+  display:none;
+  margin-left:auto; margin-right:10px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444,#dc2626);
+  color:#fff; border:none; border-radius:10px;
+  padding:8px 14px; font-family:var(--font); font-weight:800;
+  font-size:11px; letter-spacing:0.3px; white-space:nowrap;
+  cursor:pointer; box-shadow:0 4px 14px rgba(239,68,68,0.35);
+  animation:ctaPulseMobile 1.8s ease-in-out infinite;
+}
+@media (max-width:768px) {
+  .topnav-cta-mobile { display:inline-flex; align-items:center; }
+  .topnav { padding:0 14px; }
+  .topnav-logo span { font-size:13px; }
+}
+
+/* ── Notificaciones fake "gente ingresando" (estilo Hotmart) ── */
+.fake-notif {
+  position:fixed; bottom:24px; left:24px; z-index:1500;
+  display:flex; align-items:center; gap:12px;
+  background:rgba(12,29,48,0.95); backdrop-filter:blur(16px);
+  border:1px solid rgba(74,184,254,0.15);
+  border-radius:14px; padding:12px 18px 12px 14px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  max-width:340px;
+  transform:translateX(-120%);
+  transition:transform 0.45s cubic-bezier(.16,1,.3,1), opacity 0.35s;
+  opacity:0; pointer-events:none;
+}
+.fake-notif.show { transform:translateX(0); opacity:1; pointer-events:all; }
+.fake-notif-avatar {
+  width:38px; height:38px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:800; font-size:15px; font-family:var(--font-head);
+  text-transform:uppercase; user-select:none;
+  background-size:cover; background-position:center; overflow:hidden;
+}
+.fake-notif-avatar::after {
+  content:''; position:absolute; width:10px; height:10px;
+  border-radius:50%; background:#43b581; border:2px solid #0c1d30;
+  transform:translate(14px,12px);
+}
+.fake-notif-text { flex:1; min-width:0; }
+.fake-notif-name {
+  font-size:13px; font-weight:700; color:#fff; line-height:1.3;
+}
+.fake-notif-action {
+  font-size:12px; color:#a8c8e8; line-height:1.35; margin-top:1px;
+}
+.fake-notif-time {
+  font-size:10px; color:var(--text3); margin-top:3px; font-weight:500;
+}
+@media (max-width:768px) {
+  .fake-notif { bottom:88px; left:12px; right:12px; max-width:none; padding:10px 14px 10px 10px; }
+  .fake-notif-avatar { width:34px; height:34px; font-size:13px; }
+  .fake-notif-name { font-size:12px; }
+  .fake-notif-action { font-size:11px; }
+}
+
 /* ── CTA "Conseguí trabajo en 24 horas" ── */
 .topnav-tab.cta-trabajo {
   background:linear-gradient(135deg,#f59e0b 0%,#ef4444 60%,#dc2626 100%) !important;
@@ -726,6 +786,7 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
     <img src="https://assets.cdn.filesafe.space/viKKPXD4WZGBeMjzT0tt/media/69b2ba63eba487f12ae6fc60.svg" alt="">
     <span>Setter con IA</span>
   </div>
+  <button class="topnav-cta-mobile" onclick="openTrabajoCta()">⚡ Trabajo 24h</button>
   <div class="topnav-tabs">
     <div class="topnav-tab active" data-view="classroom" onclick="showMainView('classroom')">Classroom</div>
     <div class="topnav-tab" data-view="resources" onclick="showMainView('resources')">Recursos</div>
@@ -937,6 +998,16 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
     Trabajo 24h
   </button>
+</div>
+
+<!-- FAKE NOTIF (gente ingresando, estilo Hotmart) -->
+<div class="fake-notif" id="fakeNotif">
+  <div class="fake-notif-avatar" id="fakeNotifAvatar"></div>
+  <div class="fake-notif-text">
+    <div class="fake-notif-name"><span id="fakeNotifName"></span></div>
+    <div class="fake-notif-action" id="fakeNotifAction"></div>
+    <div class="fake-notif-time" id="fakeNotifTime"></div>
+  </div>
 </div>
 
 <!-- TRABAJO CTA OVERLAY -->
@@ -2642,6 +2713,59 @@ async function deleteResultPost(id) {
   } catch (err) { alert('Error: ' + err.message); }
 }
 
+// ═══ Notificaciones fake "gente ingresando" (estilo Hotmart) ═══
+const FAKE_NAMES = [
+  'Sofía','Tomás','Lautaro','Camila','Mateo','Brenda','Pedro','Lara','Nicolás','Joaquín',
+  'Juliana','Maximiliano','Iván','Florencia','Federico','Tatiana','Bruno','Victoria',
+  'Sebastián','Romina','Hernán','Aldana','Diego','Manuel','Agustín','Caro','Lucas',
+  'Gianfranco','Mauricio','Facundo','Rocío','Mati','Nahuel','Joel','Valentina',
+];
+const FAKE_ACTIONS = [
+  'accedió a Setter con IA Premium',
+  'acaba de comprar el programa',
+  'reservó su llamada con Juan',
+  'se inscribió al curso',
+  'desbloqueó el módulo de Setting',
+  'consiguió su primer cliente con Setter con IA',
+  'cerró su primer venta hoy',
+  'está viendo Resultados ahora',
+  'aplicó para Trabajo 24h',
+];
+const FAKE_PALETTE = ['#7289da','#43b581','#faa61a','#f04747','#e91e63','#9b59b6','#1abc9c','#3498db','#e67e22','#2ecc71'];
+const FAKE_TIMES = ['hace un momento','hace 1 min','hace 2 min','hace 3 min','hace 5 min','hace 8 min','hace 12 min'];
+
+function fakeNotifColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+  return FAKE_PALETTE[Math.abs(h) % FAKE_PALETTE.length];
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function showFakeNotif() {
+  const n = document.getElementById('fakeNotif');
+  if (!n) return;
+  const name = pick(FAKE_NAMES);
+  const action = pick(FAKE_ACTIONS);
+  const time = pick(FAKE_TIMES);
+  const color = fakeNotifColor(name);
+  document.getElementById('fakeNotifAvatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('fakeNotifAvatar').style.background = color;
+  document.getElementById('fakeNotifName').textContent = name;
+  document.getElementById('fakeNotifAction').textContent = action;
+  document.getElementById('fakeNotifTime').textContent = time;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 5500);
+}
+
+function startFakeNotifs() {
+  // Primer disparo 18-30s después de cargar, después cada 32-65s random
+  const initialDelay = 18000 + Math.random() * 12000;
+  setTimeout(function tick() {
+    showFakeNotif();
+    setTimeout(tick, 32000 + Math.random() * 33000);
+  }, initialDelay);
+}
+
 // ═══ CTA "Conseguí trabajo en 24 horas" ═══
 let trabajoInterval = null;
 const TRABAJO_WALINK = 'https://wa.link/pxkh6z';
@@ -2680,6 +2804,7 @@ function closeTrabajoCta() {
 }
 
 init();
+startFakeNotifs();
 </script>
 </body>
 </html>
