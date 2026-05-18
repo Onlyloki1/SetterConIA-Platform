@@ -98,20 +98,21 @@ h1, h2 { color:var(--text); }
   display:inline-flex; align-items:center; gap:10px;
   padding:18px 44px; border-radius:14px;
   font-size:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
-  color:#fff; border:none; cursor:pointer;
-  background:linear-gradient(135deg, #4ab8fe, #2196f3);
-  box-shadow:0 8px 28px rgba(74,184,254,0.4);
-  transition:all 0.25s;
+  color:#fff; border:none; cursor:not-allowed;
+  background:linear-gradient(135deg, #2a3a4d, #1f2a38);
+  box-shadow:0 4px 14px rgba(0,0,0,0.3);
+  transition:all 0.3s;
   font-family:var(--font);
+  opacity:0.7;
 }
-.btn-enter:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(74,184,254,0.5); }
-.btn-enter:active { transform:translateY(0); }
 .btn-enter.unlocked {
+  cursor:pointer; opacity:1;
   background:linear-gradient(135deg, var(--green), #1faa54);
   box-shadow:0 8px 28px rgba(37,211,102,0.4);
   animation:pulse 1.6s ease-in-out infinite;
 }
-.btn-enter.unlocked:hover { box-shadow:0 12px 36px rgba(37,211,102,0.5); }
+.btn-enter.unlocked:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(37,211,102,0.55); }
+.btn-enter.unlocked:active { transform:translateY(0); }
 @keyframes pulse {
   0%, 100% { box-shadow:0 8px 28px rgba(37,211,102,0.4); }
   50% { box-shadow:0 8px 28px rgba(37,211,102,0.7), 0 0 0 6px rgba(37,211,102,0.1); }
@@ -139,23 +140,23 @@ h1, h2 { color:var(--text); }
 
 <div class="intro-card">
   <div class="video-wrap" id="videoWrap">
-    <div class="video-placeholder">
-      <div class="ico">🎬</div>
-      <p>El video de bienvenida se está preparando.<br>Configurá la URL desde el panel admin → Configuración.</p>
-    </div>
+    <iframe
+      src="https://www.youtube.com/embed/_3kY-ZxNjJo?rel=0&modestbranding=1&controls=1"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+      allowfullscreen></iframe>
   </div>
 
   <div class="intro-body">
-    <h1 class="headline">Antes de acceder al curso</h1>
-    <p class="subline">Mirá este video. Te explico de qué va Setter con IA y cómo funciona la plataforma.</p>
+    <h1 class="headline">Mirá esto antes de entrar</h1>
+    <p class="subline">El botón para acceder a la plataforma se desbloquea cuando termine el video.</p>
 
     <div class="countdown" id="countdown">
       <div class="countdown-icon"></div>
-      <span>El acceso se desbloquea en <span class="countdown-time" id="cdTime">2:00</span></span>
+      <span>El acceso se desbloquea en <span class="countdown-time" id="cdTime">3:09</span></span>
     </div>
 
-    <button class="btn-enter" id="btnEnter" onclick="enter()">
-      <span id="btnLabel">INGRESAR</span>
+    <button class="btn-enter" id="btnEnter" disabled onclick="enter()">
+      <span id="btnLabel">🔒 ACCESO BLOQUEADO</span>
     </button>
 
     <div class="foot-note">
@@ -165,37 +166,8 @@ h1, h2 { color:var(--text); }
 </div>
 
 <script>
-// ── Carga URL del video desde settings ──
-async function loadVideo() {
-  try {
-    const res = await fetch('/api/public/settings');
-    const s = await res.json();
-    const url = (s.intro_video_url || '').trim();
-    if (!url) return; // queda placeholder
-    const wrap = document.getElementById('videoWrap');
-    wrap.innerHTML = `<iframe src="${embedUrl(url)}" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
-  } catch (e) {}
-}
-function embedUrl(url) {
-  if (/loom\.com\/share\//.test(url)) {
-    const id = url.match(/share\/([a-z0-9]+)/i)?.[1];
-    if (id) return `https://www.loom.com/embed/${id}?autoplay=1`;
-  }
-  if (/youtube\.com\/watch|youtu\.be\//.test(url)) {
-    const id = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-    if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
-  }
-  if (/vimeo\.com\//.test(url)) {
-    const id = url.match(/vimeo\.com\/(\d+)/)?.[1];
-    if (id) return `https://player.vimeo.com/video/${id}?autoplay=1`;
-  }
-  return url;
-}
-
-// ── Countdown visual de 2:00 ──
-// Nota: el botón INGRESAR está SIEMPRE habilitado en esta versión.
-// Cuando el countdown llega a 0, el countdown se oculta y el botón se resalta verde "DESBLOQUEADO".
-const TOTAL = 2 * 60; // 120s
+// ── Countdown 3:09 (duración del video) — botón realmente bloqueado ──
+const TOTAL = 3 * 60 + 9; // 189s
 let remaining = TOTAL;
 const cdEl = document.getElementById('countdown');
 const cdTimeEl = document.getElementById('cdTime');
@@ -206,23 +178,25 @@ function fmt(s) {
   const m = Math.floor(s/60), sec = s % 60;
   return `${m}:${sec.toString().padStart(2,'0')}`;
 }
+cdTimeEl.textContent = fmt(remaining);
+
 const tick = setInterval(() => {
   remaining--;
   if (remaining <= 0) {
     clearInterval(tick);
     cdEl.classList.add('done');
     btnEnter.classList.add('unlocked');
-    btnLabel.textContent = '✓ INGRESAR AHORA';
+    btnEnter.disabled = false;
+    btnLabel.textContent = '✓ ACCEDER A LA PLATAFORMA';
     return;
   }
   cdTimeEl.textContent = fmt(remaining);
 }, 1000);
 
 function enter() {
+  if (btnEnter.disabled) return;
   window.location.href = '/dashboard.html';
 }
-
-loadVideo();
 </script>
 
 </body>
