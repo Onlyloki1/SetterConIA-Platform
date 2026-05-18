@@ -35,8 +35,8 @@ const uploadFields = upload.fields([
   { name: 'avatar_image', maxCount: 1 }
 ]);
 
-// GET — cualquier user autenticado lista los posts
-router.get('/', authMiddleware, async (req, res) => {
+// GET — público (cualquiera ve los wins, incluso visitor sin login)
+router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, username, avatar_color, avatar_image_url, content, image_url,

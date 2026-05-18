@@ -426,15 +426,30 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
   .cc-inner { padding:20px 16px; }
   .mobile-tabs {
     display:flex; position:fixed; bottom:0; left:0; right:0;
-    background:var(--bg2); border-top:1px solid var(--border);
-    justify-content:space-around; padding:8px 0; z-index:100;
+    background:rgba(7,17,31,0.95); backdrop-filter:blur(12px);
+    border-top:1px solid rgba(74,184,254,0.12);
+    justify-content:space-around; padding:8px 4px 10px; z-index:100;
+    box-shadow:0 -8px 24px rgba(0,0,0,0.4);
   }
   .mobile-tabs button {
-    background:none; border:none; color:var(--text3); font-family:var(--font);
-    font-size:10px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
+    flex:1; background:none; border:none; color:var(--text3); font-family:var(--font);
+    font-size:10px; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; padding:6px 2px; border-radius:8px; transition:color 0.2s;
   }
   .mobile-tabs button.active { color:var(--accent); }
   .mobile-tabs svg { width:20px; height:20px; }
+  .mobile-tabs .mobile-cta-trabajo {
+    color:#fff !important;
+    background:linear-gradient(135deg,#f59e0b,#ef4444,#dc2626);
+    margin:0 4px; border-radius:10px; padding:6px 4px;
+    box-shadow:0 4px 12px rgba(239,68,68,0.3);
+    animation:ctaPulseMobile 1.8s ease-in-out infinite;
+  }
+  .mobile-tabs .mobile-cta-trabajo svg { color:#fff; }
+  @keyframes ctaPulseMobile {
+    0%,100% { box-shadow:0 4px 12px rgba(239,68,68,0.3), 0 0 0 0 rgba(239,68,68,0.5); }
+    50% { box-shadow:0 4px 12px rgba(239,68,68,0.4), 0 0 0 6px rgba(239,68,68,0); }
+  }
   body { padding-bottom:70px; }
 }
 @media (min-width:769px) { .mobile-tabs { display:none; } }
@@ -493,21 +508,37 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
   -webkit-background-clip:text; background-clip:text; color:transparent;
   font-weight:900;
 }
-.trabajo-countdown {
-  display:inline-flex; align-items:center; gap:14px;
-  background:linear-gradient(135deg,#f59e0b,#ef4444);
-  padding:18px 36px; border-radius:16px;
-  box-shadow:0 16px 48px rgba(239,68,68,0.35);
-  font-family:var(--font-head); color:#fff; font-weight:800;
-  font-size:18px; letter-spacing:0.3px;
+.trabajo-wa-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:12px;
+  min-width:280px; padding:22px 44px; border-radius:18px; border:none;
+  font-family:var(--font-head); font-weight:800; font-size:19px; letter-spacing:0.3px;
+  cursor:pointer; transition:all 0.3s; color:#fff;
+  background:linear-gradient(135deg,#3b3b3b,#1f1f1f);
+  box-shadow:0 12px 32px rgba(0,0,0,0.4);
+  text-shadow:0 1px 2px rgba(0,0,0,0.3);
+}
+.trabajo-wa-btn:disabled {
+  cursor:not-allowed; opacity:0.85;
+}
+.trabajo-wa-btn.ready {
+  background:linear-gradient(135deg,#25d366,#128c7e);
+  box-shadow:0 16px 48px rgba(37,211,102,0.45), 0 0 0 0 rgba(37,211,102,0.4);
+  animation:waReady 1.6s ease-in-out infinite;
+  cursor:pointer;
+}
+.trabajo-wa-btn.ready:hover {
+  transform:translateY(-2px) scale(1.03); filter:brightness(1.08);
+}
+@keyframes waReady {
+  0%,100% { box-shadow:0 16px 48px rgba(37,211,102,0.45), 0 0 0 0 rgba(37,211,102,0.5); }
+  50% { box-shadow:0 16px 48px rgba(37,211,102,0.45), 0 0 0 12px rgba(37,211,102,0); }
 }
 .trabajo-timer-num {
-  font-size:38px; font-weight:900; min-width:48px;
+  font-size:24px; font-weight:900; min-width:30px;
   display:inline-block; text-align:center;
-  text-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
 .trabajo-cancel {
-  display:block; margin:24px auto 0;
+  display:block; margin:20px auto 0;
   background:none; border:1px solid rgba(255,255,255,0.15);
   color:rgba(255,255,255,0.5); padding:10px 22px;
   border-radius:10px; font-size:12px; font-family:var(--font);
@@ -516,10 +547,11 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
 .trabajo-cancel:hover { border-color:rgba(255,255,255,0.4); color:#fff; }
 
 @media (max-width:768px) {
-  .trabajo-text { font-size:22px; }
-  .trabajo-icon { font-size:48px; }
-  .trabajo-timer-num { font-size:30px; }
-  .trabajo-countdown { font-size:15px; padding:14px 24px; }
+  .trabajo-text { font-size:21px; line-height:1.4; }
+  .trabajo-icon { font-size:48px; margin-bottom:12px; }
+  .trabajo-wa-btn { font-size:16px; min-width:auto; width:100%; padding:18px 24px; }
+  .trabajo-timer-num { font-size:20px; }
+  .trabajo-content { max-width:100%; }
 }
 
 /* ── RESULTADOS (estilo Discord wins) ── */
@@ -894,13 +926,21 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
 
 <!-- MOBILE TABS -->
 <div class="mobile-tabs">
-  <button class="active" onclick="showMainView('classroom')">
+  <button class="active" data-mtab="classroom" onclick="showMainView('classroom')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
     Classroom
   </button>
-  <button onclick="showMainView('resources')">
+  <button data-mtab="results" onclick="showMainView('results')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-2 5l9-9l-9-9l2 5l-7 4l7 4z"/></svg>
+    Wins
+  </button>
+  <button data-mtab="resources" onclick="showMainView('resources')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    Resources
+    Recursos
+  </button>
+  <button class="mobile-cta-trabajo" onclick="openTrabajoCta()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+    Trabajo 24h
   </button>
 </div>
 
@@ -912,11 +952,9 @@ body.is-admin .result-msg:hover .result-actions { display:flex; }
       Para que te consiga trabajo con una empresa y ganes en USD tiene un <strong>COSTE, NO ES GRATIS</strong>.<br><br>
       Si estás dispuesto a abonar, mandame mensaje.
     </div>
-    <div class="trabajo-countdown">
-      Te redirijo en
-      <span class="trabajo-timer-num" id="trabajoTimer">10</span>
-      seg
-    </div>
+    <button class="trabajo-wa-btn" id="trabajoWaBtn" disabled onclick="goToTrabajoWa()">
+      <span id="trabajoBtnLabel">Esperá <span class="trabajo-timer-num" id="trabajoTimer">10</span>s</span>
+    </button>
     <button class="trabajo-cancel" onclick="closeTrabajoCta()">Cancelar</button>
   </div>
 </div>
@@ -1017,8 +1055,8 @@ async function logout() { await fetch('/api/auth/logout',{method:'POST'}); locat
 
 // ── VIEWS ──
 function showMainView(v) {
-  // Public mode: solo classroom + course (la lección abierta) están permitidos
-  if (isPublic && v !== 'classroom' && v !== 'course') {
+  // Public mode: classroom + course + results (Wins) permitidos sin login
+  if (isPublic && v !== 'classroom' && v !== 'course' && v !== 'results') {
     publicTabBlocked();
     return;
   }
@@ -1028,6 +1066,7 @@ function showMainView(v) {
   });
   document.getElementById('view-'+v).style.display = '';
   document.querySelectorAll('.topnav-tab').forEach(t => t.classList.toggle('active', t.dataset.view===v));
+  document.querySelectorAll('.mobile-tabs button[data-mtab]').forEach(t => t.classList.toggle('active', t.dataset.mtab===v));
   if (v==='classroom') loadClassroom();
   if (v==='resources') loadResources();
   if (v==='onboarding') loadOnboarding();
@@ -1197,6 +1236,25 @@ function renderPublicClassroom() {
       </div>
     </div>`;
   }).join('');
+
+  // Card "Resultados" también para visitantes públicos — son los wins que más enganchan
+  g.innerHTML += `<div class="course-card results-card" onclick="showMainView('results')">
+    <div class="course-cover">
+      <div class="course-cover-overlay">
+        <div class="course-cover-badge" style="background:linear-gradient(135deg,#43b581,#2d8a5f);">🏆 WINS</div>
+        <div class="course-cover-title">RESULTADOS</div>
+      </div>
+      <div class="results-card-emoji">💸</div>
+    </div>
+    <div class="course-body">
+      <div class="course-name">Resultados de alumnos</div>
+      <div class="course-desc">Wins reales: cierres, primeros clientes, transformaciones.</div>
+      <div class="course-progress-wrap">
+        <div class="course-progress-bar"><div class="course-progress-fill" style="width:100%;background:linear-gradient(90deg,#43b581,#6ee7b7);"></div></div>
+        <span class="course-progress-text" style="color:#43b581;">LIVE</span>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ── COURSE ──
@@ -2373,7 +2431,7 @@ async function loadResults() {
   const feed = document.getElementById('resultsFeed');
   try {
     const r = await fetch('/api/results');
-    if (!r.ok) { feed.innerHTML = '<div class="results-empty">Iniciá sesión para ver los resultados.</div>'; return; }
+    if (!r.ok) { feed.innerHTML = '<div class="results-empty">No se pudieron cargar los resultados.</div>'; return; }
     resultPosts = await r.json();
     renderResults();
     // auto-scroll al final estilo Discord
@@ -2595,19 +2653,30 @@ const TRABAJO_WALINK = 'https://wa.link/pxkh6z';
 
 function openTrabajoCta() {
   const overlay = document.getElementById('trabajoOverlay');
-  const timer = document.getElementById('trabajoTimer');
+  const btn = document.getElementById('trabajoWaBtn');
+  const label = document.getElementById('trabajoBtnLabel');
   let s = 10;
-  timer.textContent = s;
+  btn.disabled = true;
+  btn.classList.remove('ready');
+  label.innerHTML = `Esperá <span class="trabajo-timer-num">${s}</span>s`;
   overlay.classList.add('open');
   clearInterval(trabajoInterval);
   trabajoInterval = setInterval(() => {
     s--;
-    timer.textContent = s;
-    if (s <= 0) {
+    if (s > 0) {
+      label.innerHTML = `Esperá <span class="trabajo-timer-num">${s}</span>s`;
+    } else {
       clearInterval(trabajoInterval);
-      window.location.href = TRABAJO_WALINK;
+      btn.disabled = false;
+      btn.classList.add('ready');
+      label.textContent = '💬 Quiero abonar — Mandame mensaje';
     }
   }, 1000);
+}
+
+function goToTrabajoWa() {
+  window.open(TRABAJO_WALINK, '_blank');
+  closeTrabajoCta();
 }
 
 function closeTrabajoCta() {
