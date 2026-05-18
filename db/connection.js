@@ -316,6 +316,21 @@ async function initDB() {
       );
       CREATE INDEX IF NOT EXISTS idx_call_tracking_date ON call_tracking(call_date);
 
+      -- Resultados (estilo Discord wins, solo admin postea)
+      CREATE TABLE IF NOT EXISTS result_posts (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(80) NOT NULL,
+        avatar_color VARCHAR(20) DEFAULT '#4ab8fe',
+        content TEXT NOT NULL,
+        image_url TEXT,
+        reaction_fire INTEGER DEFAULT 0,
+        reaction_heart INTEGER DEFAULT 0,
+        reaction_muscle INTEGER DEFAULT 0,
+        posted_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_result_posts_posted ON result_posts(posted_at ASC);
+
       -- Performance indices
       CREATE INDEX IF NOT EXISTS idx_lessons_module_id ON lessons(module_id);
       CREATE INDEX IF NOT EXISTS idx_user_progress_user ON user_progress(user_id);

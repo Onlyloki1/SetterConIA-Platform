@@ -442,6 +442,167 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
   0%,100% { box-shadow:0 0 0 0 rgba(245,158,11,0.4); }
   50% { box-shadow:0 0 20px 4px rgba(245,158,11,0.3); }
 }
+
+/* ── RESULTADOS (estilo Discord wins) ── */
+.results-wrap {
+  max-width:1100px; margin:0 auto; padding:0 0 80px;
+  display:flex; flex-direction:column;
+}
+.results-header {
+  position:sticky; top:60px; z-index:50;
+  background:rgba(7,17,31,0.95); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(74,184,254,0.08);
+  padding:14px 28px; display:flex; align-items:center; gap:14px;
+}
+.results-hash {
+  width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,0.4); font-weight:800; font-size:18px;
+}
+.results-title-row { flex:1; }
+.results-title { font-size:16px; font-weight:700; color:#fff; letter-spacing:-0.2px; }
+.results-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+.results-add-btn {
+  background:linear-gradient(135deg,#4ab8fe,#2196f3); color:#fff; border:none;
+  padding:9px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;
+  font-family:var(--font); display:none; align-items:center; gap:6px; transition:all 0.2s;
+}
+.results-add-btn:hover { opacity:0.92; transform:translateY(-1px); box-shadow:0 8px 24px rgba(74,184,254,0.3); }
+body.is-admin .results-add-btn { display:inline-flex; }
+
+.results-feed { padding:24px 28px 100px; min-height:60vh; }
+.results-empty {
+  text-align:center; padding:80px 20px; color:var(--text3);
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+
+.results-date-sep {
+  display:flex; align-items:center; gap:14px; margin:24px 0 14px;
+  font-size:11px; color:var(--text3); font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+}
+.results-date-sep::before, .results-date-sep::after {
+  content:''; flex:1; height:1px; background:rgba(255,255,255,0.06);
+}
+
+.result-msg {
+  display:flex; gap:14px; padding:10px 14px; border-radius:10px;
+  margin-bottom:2px; transition:background 0.15s; position:relative;
+}
+.result-msg:hover { background:rgba(255,255,255,0.018); }
+.result-avatar {
+  width:42px; height:42px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:800; font-size:17px; font-family:var(--font-head);
+  text-transform:uppercase; user-select:none;
+}
+.result-body { flex:1; min-width:0; }
+.result-head {
+  display:flex; align-items:baseline; gap:10px; margin-bottom:3px; flex-wrap:wrap;
+}
+.result-username {
+  font-size:15px; font-weight:600; color:#43b581; letter-spacing:-0.1px;
+}
+.result-time { font-size:11px; color:var(--text3); font-weight:500; }
+.result-content {
+  font-size:14px; line-height:1.45; color:#dcddde;
+  white-space:pre-wrap; word-break:break-word;
+}
+.result-image {
+  margin-top:8px; max-width:480px; max-height:360px;
+  border-radius:10px; border:1px solid rgba(255,255,255,0.06);
+  display:block; cursor:zoom-in; background:#000;
+}
+.result-reactions {
+  display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;
+}
+.result-reaction {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:3px 9px 3px 7px; background:rgba(74,184,254,0.08);
+  border:1px solid rgba(74,184,254,0.18); border-radius:10px;
+  font-size:12px; font-weight:700; color:#a8d8ff;
+}
+.result-reaction.fire { background:rgba(255,99,29,0.1); border-color:rgba(255,99,29,0.25); color:#ff8c4a; }
+.result-reaction.heart { background:rgba(231,76,60,0.1); border-color:rgba(231,76,60,0.25); color:#ff7e7e; }
+.result-reaction.muscle { background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.25); color:#fbbf24; }
+.result-reaction .emoji { font-size:14px; }
+
+.result-actions {
+  position:absolute; top:6px; right:14px; display:none; gap:4px;
+  background:rgba(7,17,31,0.85); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:3px;
+}
+body.is-admin .result-msg:hover .result-actions { display:flex; }
+.result-action-btn {
+  width:28px; height:28px; border-radius:5px; border:none; cursor:pointer;
+  background:transparent; color:var(--text3); display:flex; align-items:center; justify-content:center;
+  font-size:13px; transition:all 0.15s;
+}
+.result-action-btn:hover { background:rgba(255,255,255,0.06); color:#fff; }
+.result-action-btn.del:hover { color:#e74c3c; }
+
+/* Card "Resultados" en el grid de classroom — usa misma estructura que course-card */
+.results-card .course-cover {
+  background:linear-gradient(135deg,#0c2340,#163a5f) !important;
+  position:relative;
+}
+.results-card .course-cover::after {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(67,181,129,0.25), transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(74,184,254,0.2), transparent 50%);
+  pointer-events:none;
+}
+.results-card-emoji {
+  position:absolute; top:48%; left:50%; transform:translate(-50%,-50%);
+  font-size:56px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+
+/* Modal de post — campos reacciones */
+.reactions-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+.reaction-input-box {
+  display:flex; align-items:center; gap:8px; padding:10px 12px;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;
+}
+.reaction-input-box span { font-size:18px; }
+.reaction-input-box input {
+  flex:1; background:transparent; border:none; color:#fff;
+  font-size:14px; font-family:var(--font); outline:none; width:100%;
+}
+.image-preview-wrap {
+  position:relative; margin-top:8px; display:none;
+}
+.image-preview-wrap.has-image { display:block; }
+.image-preview-wrap img {
+  max-width:100%; max-height:240px; border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.image-preview-remove {
+  position:absolute; top:8px; right:8px;
+  background:rgba(0,0,0,0.7); color:#fff; border:none; cursor:pointer;
+  width:28px; height:28px; border-radius:50%; font-size:14px;
+}
+.image-upload-box {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:20px; background:rgba(74,184,254,0.03);
+  border:2px dashed rgba(74,184,254,0.2); border-radius:10px;
+  cursor:pointer; transition:all 0.2s;
+}
+.image-upload-box:hover { border-color:rgba(74,184,254,0.5); }
+.image-upload-box .emoji { font-size:28px; }
+.image-upload-box span { font-size:13px; color:#4ab8fe; font-weight:600; }
+.image-upload-box small { font-size:11px; color:var(--text3); }
+
+@media (max-width:768px) {
+  .results-header { padding:12px 16px; top:0; }
+  .results-feed { padding:16px 12px 100px; }
+  .result-msg { padding:8px 6px; gap:10px; }
+  .result-avatar { width:36px; height:36px; font-size:15px; }
+  .result-content { font-size:14px; }
+  .result-image { max-width:100%; max-height:280px; }
+}
 </style>
 </head>
 <body>
@@ -457,6 +618,7 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
     <div class="topnav-tab" data-view="resources" onclick="showMainView('resources')">Recursos</div>
     <div class="topnav-tab" data-view="checkin" onclick="showMainView('checkin')">Check-in</div>
     <div class="topnav-tab" data-view="diario" onclick="showMainView('diario')">Diario</div>
+    <div class="topnav-tab" data-view="results" onclick="showMainView('results')">Resultados</div>
     <div class="topnav-tab" id="tabDiscord" data-view="discord" onclick="showMainView('discord')" style="background:rgba(37,211,102,0.15);border-color:rgba(37,211,102,0.3);color:#25d366;white-space:nowrap;display:none;">🎓 Clases en vivo</div>
   </div>
   <div class="topnav-right">
@@ -598,6 +760,21 @@ body.is-admin .sw-item[draggable="true"] .sw-drag-handle { cursor:grab; }
       <button class="cc-btn cc-btn-primary" onclick="submitAction()" style="width:100%;">Agregar al Diario</button>
     </div>
     <div id="diarioTimeline"></div>
+  </div>
+</div>
+
+<!-- RESULTADOS (estilo Discord wins) -->
+<div id="view-results" style="display:none;">
+  <div class="results-wrap">
+    <div class="results-header">
+      <div class="results-hash">#</div>
+      <div class="results-title-row">
+        <div class="results-title">resultados</div>
+        <div class="results-sub">Wins reales de alumnos del programa</div>
+      </div>
+      <button class="results-add-btn" onclick="openResultPostModal()">+ Nuevo post</button>
+    </div>
+    <div class="results-feed" id="resultsFeed"></div>
   </div>
 </div>
 
@@ -749,7 +926,7 @@ function showMainView(v) {
     publicTabBlocked();
     return;
   }
-  ['classroom','course','resources','onboarding','checkin','diario','discord','pending','rejected'].forEach(id => {
+  ['classroom','course','resources','onboarding','checkin','diario','results','discord','pending','rejected'].forEach(id => {
     const el = document.getElementById('view-'+id);
     if (el) el.style.display = 'none';
   });
@@ -760,6 +937,7 @@ function showMainView(v) {
   if (v==='onboarding') loadOnboarding();
   if (v==='checkin') { loadCheckin(); loadGoals(); }
   if (v==='diario') loadDiario();
+  if (v==='results') loadResults();
   if (v==='discord') startDiscordTimer();
 }
 
@@ -830,6 +1008,26 @@ async function loadClassroom() {
       </div>
     </div>`;
   }).join('');
+
+  // Card "Resultados" — siempre visible al final de los módulos
+  g.innerHTML += `<div class="course-card results-card" onclick="showMainView('results')">
+    <div class="course-cover">
+      <div class="course-cover-overlay">
+        <div class="course-cover-badge" style="background:linear-gradient(135deg,#43b581,#2d8a5f);">🏆 WINS</div>
+        <div class="course-cover-title">RESULTADOS</div>
+      </div>
+      <div class="results-card-emoji">💸</div>
+    </div>
+    <div class="course-body">
+      <div class="course-name">Resultados de alumnos</div>
+      <div class="course-desc">Wins reales: cierres, primeros clientes, transformaciones.</div>
+      <div class="course-progress-wrap">
+        <div class="course-progress-bar"><div class="course-progress-fill" style="width:100%;background:linear-gradient(90deg,#43b581,#6ee7b7);"></div></div>
+        <span class="course-progress-text" style="color:#43b581;">LIVE</span>
+      </div>
+    </div>
+  </div>`;
+
   if (isAdmin) g.innerHTML += `<div class="new-course-card admin-only" onclick="openModuleModal()">+ New course</div>`;
 }
 
@@ -2070,6 +2268,190 @@ function startDiscordTimer() {
       document.getElementById('discordUnlocked').style.display = '';
     }
   }, 1000);
+}
+
+// ═══ RESULTADOS (wins estilo Discord) ═══
+let resultPosts = [];
+
+async function loadResults() {
+  const feed = document.getElementById('resultsFeed');
+  try {
+    const r = await fetch('/api/results');
+    if (!r.ok) { feed.innerHTML = '<div class="results-empty">Iniciá sesión para ver los resultados.</div>'; return; }
+    resultPosts = await r.json();
+    renderResults();
+    // auto-scroll al final estilo Discord
+    requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+  } catch (err) {
+    feed.innerHTML = '<div class="results-empty">Error al cargar resultados.</div>';
+  }
+}
+
+function fmtResultDate(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const yest = new Date(today); yest.setDate(today.getDate() - 1);
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  if (sameDay(d, today)) return 'hoy a las ' + time;
+  if (sameDay(d, yest)) return 'ayer a las ' + time;
+  return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ', ' + time;
+}
+
+function fmtDateHeader(iso) {
+  return new Date(iso).toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
+}
+
+function renderResults() {
+  const feed = document.getElementById('resultsFeed');
+  if (!resultPosts.length) {
+    feed.innerHTML = `<div class="results-empty">
+      <div style="font-size:48px;opacity:0.6;">📭</div>
+      <div style="font-size:14px;">Todavía no hay resultados publicados.</div>
+      ${isAdmin ? '<button class="results-add-btn" style="display:inline-flex;margin-top:14px;" onclick="openResultPostModal()">Publicar el primero</button>' : ''}
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+  for (const p of resultPosts) {
+    const dateKey = new Date(p.posted_at).toDateString();
+    if (dateKey !== lastDate) {
+      html += `<div class="results-date-sep">${esc(fmtDateHeader(p.posted_at))}</div>`;
+      lastDate = dateKey;
+    }
+    const initials = (p.username || '?').trim().charAt(0).toUpperCase();
+    const reactions = [
+      p.reaction_fire > 0 ? `<span class="result-reaction fire"><span class="emoji">🔥</span>${p.reaction_fire}</span>` : '',
+      p.reaction_heart > 0 ? `<span class="result-reaction heart"><span class="emoji">❤️</span>${p.reaction_heart}</span>` : '',
+      p.reaction_muscle > 0 ? `<span class="result-reaction muscle"><span class="emoji">💪</span>${p.reaction_muscle}</span>` : '',
+    ].filter(Boolean).join('');
+
+    html += `<div class="result-msg" data-id="${p.id}">
+      <div class="result-avatar" style="background:${p.avatar_color || '#4ab8fe'};">${esc(initials)}</div>
+      <div class="result-body">
+        <div class="result-head">
+          <span class="result-username">${esc(p.username)}</span>
+          <span class="result-time">${esc(fmtResultDate(p.posted_at))}</span>
+        </div>
+        <div class="result-content">${linkify(esc(p.content))}</div>
+        ${p.image_url ? `<img class="result-image" src="${esc(p.image_url)}" onclick="window.open('${esc(p.image_url)}','_blank')" alt="">` : ''}
+        ${reactions ? `<div class="result-reactions">${reactions}</div>` : ''}
+      </div>
+      <div class="result-actions">
+        <button class="result-action-btn" title="Editar" onclick="openResultPostModal(${p.id})">✏️</button>
+        <button class="result-action-btn del" title="Borrar" onclick="deleteResultPost(${p.id})">🗑</button>
+      </div>
+    </div>`;
+  }
+  feed.innerHTML = html;
+}
+
+function linkify(html) {
+  return html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#4ab8fe;text-decoration:none;">$1</a>');
+}
+
+function openResultPostModal(id) {
+  if (!isAdmin) return;
+  const editing = id ? resultPosts.find(p => p.id === id) : null;
+  const localDt = editing ? new Date(editing.posted_at).toISOString().slice(0,16) : new Date().toISOString().slice(0,16);
+
+  document.getElementById('modalBox').innerHTML = `
+    <div class="modal-title">${editing ? 'Editar' : 'Nuevo'} resultado</div>
+    <div class="modal-field">
+      <div class="modal-label">Nombre de usuario</div>
+      <input type="text" class="modal-input" id="rpUsername" placeholder="ej: Luis Gerardo" value="${esc(editing?.username || '')}" maxlength="80">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Mensaje / win</div>
+      <textarea class="modal-textarea" id="rpContent" placeholder="Hola gente bonita, cerré un cliente más por 1500 USD..." style="min-height:120px;">${esc(editing?.content || '')}</textarea>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Fecha y hora</div>
+      <input type="datetime-local" class="modal-input" id="rpPostedAt" value="${localDt}">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Reacciones (cantidad)</div>
+      <div class="reactions-grid">
+        <div class="reaction-input-box"><span>🔥</span><input type="number" min="0" id="rpFire" value="${editing?.reaction_fire || 0}"></div>
+        <div class="reaction-input-box"><span>❤️</span><input type="number" min="0" id="rpHeart" value="${editing?.reaction_heart || 0}"></div>
+        <div class="reaction-input-box"><span>💪</span><input type="number" min="0" id="rpMuscle" value="${editing?.reaction_muscle || 0}"></div>
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Imagen (opcional)</div>
+      <label class="image-upload-box" id="rpUploadBox">
+        <span class="emoji">📎</span>
+        <span>Subir imagen</span>
+        <small>JPG, PNG, WEBP o GIF (máx 20 MB)</small>
+        <input type="file" id="rpImageInput" accept="image/*" style="display:none;" onchange="previewResultImage(this)">
+      </label>
+      <div class="image-preview-wrap ${editing?.image_url ? 'has-image' : ''}" id="rpImagePreview">
+        <img id="rpImagePreviewImg" src="${editing?.image_url || ''}" alt="">
+        <button type="button" class="image-preview-remove" onclick="removeResultImage()">✕</button>
+      </div>
+      <input type="hidden" id="rpRemoveImage" value="false">
+    </div>
+    <div class="modal-actions">
+      ${editing ? `<button class="modal-btn modal-btn-danger" onclick="deleteResultPost(${editing.id})">Borrar</button>` : ''}
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="saveResultPost(${editing ? editing.id : 'null'})">${editing ? 'Guardar' : 'Publicar'}</button>
+    </div>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function previewResultImage(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  document.getElementById('rpImagePreviewImg').src = url;
+  document.getElementById('rpImagePreview').classList.add('has-image');
+  document.getElementById('rpRemoveImage').value = 'false';
+}
+
+function removeResultImage() {
+  document.getElementById('rpImagePreview').classList.remove('has-image');
+  document.getElementById('rpImageInput').value = '';
+  document.getElementById('rpRemoveImage').value = 'true';
+}
+
+async function saveResultPost(id) {
+  const username = document.getElementById('rpUsername').value.trim();
+  const content = document.getElementById('rpContent').value.trim();
+  const postedAt = document.getElementById('rpPostedAt').value;
+  if (!username || !content) { alert('Username y mensaje son requeridos'); return; }
+
+  const fd = new FormData();
+  fd.append('username', username);
+  fd.append('content', content);
+  if (postedAt) fd.append('posted_at', postedAt);
+  fd.append('reaction_fire', document.getElementById('rpFire').value || 0);
+  fd.append('reaction_heart', document.getElementById('rpHeart').value || 0);
+  fd.append('reaction_muscle', document.getElementById('rpMuscle').value || 0);
+  const fileInput = document.getElementById('rpImageInput');
+  if (fileInput.files[0]) fd.append('image', fileInput.files[0]);
+  fd.append('remove_image', document.getElementById('rpRemoveImage').value);
+
+  const url = id && id !== null ? '/api/results/' + id : '/api/results';
+  const method = id && id !== null ? 'PATCH' : 'POST';
+  try {
+    const r = await fetch(url, { method, body: fd });
+    if (!r.ok) { const e = await r.json().catch(()=>({error:'Error'})); alert(e.error || 'Error'); return; }
+    closeModal();
+    await loadResults();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function deleteResultPost(id) {
+  if (!confirm('¿Borrar este post?')) return;
+  try {
+    const r = await fetch('/api/results/' + id, { method: 'DELETE' });
+    if (!r.ok) { alert('Error al borrar'); return; }
+    closeModal();
+    await loadResults();
+  } catch (err) { alert('Error: ' + err.message); }
 }
 
 init();

@@ -69,6 +69,46 @@ Fork de la plataforma B2C Smart Acquisition para vender un curso aparte llamado 
 
 ---
 
+## Sesión 2026-05-17 — Módulo "Resultados" estilo Discord wins
+
+**Pedido del user**: vender low ticket a contra-entrega. Necesita máxima prueba social ⇒ módulo "Resultados" estilo canal `#wins` de Discord donde **solo Juan postea** (clientes no escriben, solo leen). Tipo screenshot de Discord (mensajes con avatar circular colored, username verde, fecha gris, contenido, imagen opcional, reactions 🔥❤️💪 controladas por admin).
+
+**Decisiones tomadas con AskUserQuestion**:
+- Avatars: color random por inicial (paleta fija tipo Discord, hash del nombre)
+- Reactions: admin controla cuántos hearts/fire/muscle por post (números enteros)
+- Orden: cronológico tipo Discord (más viejos arriba, auto-scroll al final)
+
+**Cambios**:
+
+- **DB** (`db/connection.js`): nueva tabla `result_posts (id, username, avatar_color, content, image_url, reaction_fire, reaction_heart, reaction_muscle, posted_at, created_at)` + index `(posted_at ASC)`. Idempotente con `IF NOT EXISTS`.
+
+- **Backend nuevo** `routes/results.js`:
+  - `GET /api/results` — auth users listan posts ASC
+  - `POST /api/results` — adminOnly + multer (img 20MB, jpeg/png/webp/gif) → guarda en `UPLOAD_DIR` (`/data/uploads` Railway volume), URL `/uploads/...`. Color avatar se calcula server-side desde hash(username) contra paleta de 10 colores Discord-like.
+  - `PATCH /api/results/:id` — edita con opción `remove_image=true` para limpiar imagen
+  - `DELETE /api/results/:id` — borra
+
+- **Server** (`server.js`): registrado `app.use('/api/results', require('./routes/results'))`.
+
+- **Frontend** (`public/dashboard.html`):
+  - Tab nueva "Resultados" en topnav (entre Diario y Clases en vivo)
+  - Card "Resultados" hardcoded después del map de módulos en `loadClassroom()`. Badge verde "🏆 WINS", cover con gradient azul + radial glows verde/celeste, emoji 💸 al centro, progress bar verde 100% con texto "LIVE". Visible para auth users (no para visitors públicos).
+  - View `#view-results`: header sticky tipo Discord ("# resultados" + subtítulo + botón "+ Nuevo post" visible solo admin), feed scroll con separadores de fecha ("17 de mayo de 2026"), mensajes con avatar 42px colored, username verde `#43b581`, fecha gris ("hoy a las 12:30" / "ayer a las..." / fecha completa), contenido linkified, imagen max 480x360 clickable abre en tab, reactions condicionales.
+  - Modal admin (`openResultPostModal`): username + textarea contenido + datetime-local + 3 inputs numéricos reacciones + upload imagen con preview + botón quitar imagen. Mismo modal sirve para crear y editar (botón "Borrar" rojo aparece solo en edit).
+  - Funciones nuevas: `loadResults`, `renderResults`, `fmtResultDate`, `fmtDateHeader`, `linkify`, `openResultPostModal`, `previewResultImage`, `removeResultImage`, `saveResultPost`, `deleteResultPost`.
+  - `showMainView()` extendido para handle `'results'` → llama `loadResults()`.
+  - CSS nuevo bloque con clases `.results-wrap`, `.results-header`, `.result-msg`, `.result-avatar`, `.result-username` (verde), `.result-time`, `.result-content`, `.result-image`, `.result-reactions`, `.result-reaction.fire/.heart/.muscle`, `.result-actions` (edit/delete hover solo admin), `.results-card` para la card del grid, `.reactions-grid` + `.reaction-input-box` para el modal, `.image-preview-wrap` + `.image-upload-box`. Responsive @media <768px.
+
+**Paleta de colores avatars** (10 colores Discord-like): `#7289da`, `#43b581`, `#faa61a`, `#f04747`, `#e91e63`, `#9b59b6`, `#1abc9c`, `#3498db`, `#e67e22`, `#2ecc71`. Hash por charCode → index estable por nombre.
+
+**Verificado**: pendiente verificar live tras push a Railway (auto-deploy desde GitHub). URL: https://setterconia-platform-production.up.railway.app/dashboard.html → tab "Resultados" o card "Resultados" en classroom.
+
+**Pendiente user-side**:
+- Cargar primeros posts de wins reales (screenshots de clientes que cerraron)
+- Eventualmente agregar más tipos de reactions o emojis custom si querés
+
+---
+
 ## Sesión 2026-05-09 (parte 4) — Bloqueo a nivel módulo entero
 
 **Pedido del user**: en el modal de Nuevo/Editar Módulo (el del dashboard, NO el de admin.html), agregar un checkbox al lado del de "🎁 Bonus" para marcar el módulo COMPLETO como bloqueado. Cuando el visitor lo ve en modo público, debe aparecer con candado y el mensaje "Curso bloqueado, se desbloquea al abonar".

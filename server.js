@@ -104,6 +104,7 @@ app.use('/api/closer', require('./routes/closer'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/sync', require('./routes/sync'));
 app.use('/api/public', require('./routes/public'));
+app.use('/api/results', require('./routes/results'));
 
 // Root → intro VSL gate (después manda a /curso.html)
 app.get('/', (req, res) => {
